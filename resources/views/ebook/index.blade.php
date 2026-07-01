@@ -86,17 +86,24 @@
             overflow: hidden;
             border: 3px solid rgba(255, 255, 255, 0.2);
             background: var(--ebook-primary);
-            min-height: 320px;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 8px;
         }
 
         .cover-frame img {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
-            max-height: 500px;
+            height: auto;
+            max-height: 78vh;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 576px) {
+            .cover-frame img {
+                max-height: 62vh;
+            }
         }
 
         .toc-card {

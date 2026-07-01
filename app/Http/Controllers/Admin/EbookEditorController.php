@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\EbookContent;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
 class EbookEditorController extends Controller
@@ -27,6 +28,7 @@ class EbookEditorController extends Controller
             'hero_description' => ['required', 'string'],
             'intro_note' => ['nullable', 'string'],
             'cover_image' => ['nullable', 'string', 'max:255'],
+            'cover_upload' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'theme_primary' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'theme_secondary' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'theme_accent' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
@@ -70,12 +72,28 @@ class EbookEditorController extends Controller
         }
 
         $content = EbookContent::query()->firstOrCreate([], EbookContent::defaultData());
+
+        $coverImagePath = $data['cover_image'] ?? $content->cover_image;
+        if ($request->hasFile('cover_upload')) {
+            $directory = public_path('coverebook');
+
+            if (!File::exists($directory)) {
+                File::makeDirectory($directory, 0755, true);
+            }
+
+            $coverFile = $request->file('cover_upload');
+            $fileName = 'cover-' . now()->format('YmdHis') . '-' . Str::random(6) . '.' . $coverFile->getClientOriginalExtension();
+            $coverFile->move($directory, $fileName);
+
+            $coverImagePath = 'coverebook/' . $fileName;
+        }
+
         $content->update([
             'badge' => $data['badge'],
             'hero_title' => $data['hero_title'],
             'hero_description' => $data['hero_description'],
             'intro_note' => $data['intro_note'] ?? '',
-            'cover_image' => $data['cover_image'] ?? '',
+            'cover_image' => $coverImagePath,
             'theme_primary' => $data['theme_primary'],
             'theme_secondary' => $data['theme_secondary'],
             'theme_accent' => $data['theme_accent'],

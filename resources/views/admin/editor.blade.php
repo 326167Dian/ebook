@@ -60,6 +60,32 @@
             color: #fff;
             background: #2b7fd2;
         }
+
+        .section-save-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 12px;
+            position: sticky;
+            bottom: 10px;
+            z-index: 20;
+            padding: 8px 0;
+            background: linear-gradient(to top, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0));
+            backdrop-filter: blur(1px);
+            opacity: 0;
+            transform: translateY(8px);
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .section-save-actions.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .section-save-actions .btn {
+            box-shadow: 0 8px 18px rgba(31, 102, 186, 0.25);
+        }
     </style>
 </head>
 
@@ -106,7 +132,7 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('admin.editor.update') }}" id="editor-form">
+                <form method="POST" action="{{ route('admin.editor.update') }}" id="editor-form" enctype="multipart/form-data">
                     @csrf
 
                     @php
@@ -137,6 +163,23 @@
                     <div class="form-group mt-3">
                         <label class="form-label">Path Cover (relatif dari public)</label>
                         <input type="text" class="form-control" name="cover_image" placeholder="contoh: coverebook/coverebook.png" value="{{ old('cover_image', $content->cover_image) }}">
+                        <small class="text-muted d-block mt-1">Boleh tetap isi manual, atau upload file gambar baru di bawah.</small>
+                    </div>
+
+                    <div class="form-group mt-2">
+                        <label class="form-label">Upload Gambar Utama</label>
+                        <input type="file" class="form-control" name="cover_upload" accept="image/png,image/jpeg,image/webp">
+                        <small class="text-muted d-block mt-1">Format: JPG, PNG, WEBP. Maksimal 5MB.</small>
+                    </div>
+
+                    @if (!empty($content->cover_image))
+                        <div class="mt-2">
+                            <img src="{{ asset($content->cover_image) }}" alt="Preview Cover" style="width: 100%; max-width: 280px; height: auto; border-radius: 12px; border:1px solid rgba(31,102,186,.2);">
+                        </div>
+                    @endif
+
+                    <div class="section-save-actions">
+                        <button type="submit" class="btn btn-ebook">Simpan Section Konten</button>
                     </div>
 
                     <hr class="mt-4 mb-3">
@@ -169,6 +212,10 @@
                             <label class="form-label">Warna Teks Utama</label>
                             <input type="color" class="form-control form-control-color w-100" name="theme_text" value="{{ old('theme_text', $content->theme_text ?? '#16314f') }}" required>
                         </div>
+                    </div>
+
+                    <div class="section-save-actions">
+                        <button type="submit" class="btn btn-ebook">Simpan Section Tema</button>
                     </div>
 
                     <hr class="mt-4 mb-3">
@@ -218,6 +265,10 @@
                                 </div>
                             </div>
                         @endforeach
+                    </div>
+
+                    <div class="section-save-actions">
+                        <button type="submit" class="btn btn-ebook">Simpan Section Daftar Isi</button>
                     </div>
 
                     <button type="submit" class="btn btn-ebook btn-block mt-3">Simpan Perubahan</button>
@@ -277,8 +328,18 @@
         const addChapterButton = document.getElementById('add-chapter');
         const editorForm = document.getElementById('editor-form');
         const editorInstances = new Map();
+        const sectionSaveActions = document.querySelectorAll('.section-save-actions');
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         const uploadUrl = "{{ route('admin.ckeditor.upload') }}";
+        let hasChanges = false;
+
+        function setDirtyState(isDirty) {
+            hasChanges = isDirty;
+
+            sectionSaveActions.forEach((actionBar) => {
+                actionBar.classList.toggle('is-visible', hasChanges);
+            });
+        }
 
         class LaravelUploadAdapter {
             constructor(loader) {
@@ -344,6 +405,9 @@
                 .then((editor) => {
                     textarea.dataset.ckeditorInitialized = '1';
                     editorInstances.set(textarea, editor);
+                    editor.model.document.on('change:data', () => {
+                        setDirtyState(true);
+                    });
                 })
                 .catch((error) => {
                     console.error(error);
@@ -397,12 +461,14 @@
             ensurePoint(chapterCard);
             refreshIndexes();
             initEditorsIn(chapterCard);
+            setDirtyState(true);
         }
 
         function addPoint(chapterCard) {
             chapterCard.querySelector('.points-wrapper').appendChild(pointTemplate.content.cloneNode(true));
             refreshIndexes();
             initEditorsIn(chapterCard);
+            setDirtyState(true);
         }
 
         addChapterButton.addEventListener('click', addChapter);
@@ -428,6 +494,7 @@
 
                 pointCard.remove();
                 refreshIndexes();
+                setDirtyState(true);
                 return;
             }
 
@@ -440,7 +507,16 @@
 
                 removeChapterButton.closest('.chapter-card').remove();
                 refreshIndexes();
+                setDirtyState(true);
             }
+        });
+
+        editorForm.addEventListener('input', () => {
+            setDirtyState(true);
+        });
+
+        editorForm.addEventListener('change', () => {
+            setDirtyState(true);
         });
 
         wrapper.querySelectorAll('.chapter-card').forEach((chapterCard) => {
@@ -457,7 +533,11 @@
             editorInstances.forEach((editor) => {
                 editor.updateSourceElement();
             });
+
+            setDirtyState(false);
         });
+
+        setDirtyState(false);
 
         refreshIndexes();
     </script>

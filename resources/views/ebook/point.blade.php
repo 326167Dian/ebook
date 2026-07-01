@@ -87,6 +87,18 @@
             padding: 18px;
             line-height: 1.8;
         }
+
+        .point-content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .point-content figure.image {
+            margin-left: 0;
+            margin-right: 0;
+            max-width: 100%;
+        }
     </style>
 </head>
 
