@@ -172,6 +172,51 @@
             cursor: pointer;
         }
 
+        .toc-head-right {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toc-access-badge {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 4px 9px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            line-height: 1;
+            text-transform: uppercase;
+        }
+
+        .toc-access-badge.preview {
+            color: #0b7285;
+            background: rgba(21, 170, 191, 0.16);
+            border: 1px solid rgba(11, 114, 133, 0.22);
+        }
+
+        .toc-access-badge.locked {
+            color: #8b5e00;
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid rgba(139, 94, 0, 0.28);
+        }
+
+        .toc-access-badge.locked-link {
+            text-decoration: none;
+        }
+
+        .toc-access-badge.locked-link:hover {
+            color: #6f4b00;
+            background: rgba(255, 193, 7, 0.3);
+        }
+
+        .toc-access-badge.full {
+            color: #176a3a;
+            background: rgba(25, 135, 84, 0.16);
+            border: 1px solid rgba(23, 106, 58, 0.24);
+        }
+
         .toc-no {
             width: 28px;
             height: 28px;
@@ -196,6 +241,52 @@
 
         .toc-list li {
             margin: 4px 0;
+        }
+
+        .toc-point-locked {
+            color: #8b5e00;
+            font-size: 12px;
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+
+        .toc-locked-note {
+            margin-top: 8px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px dashed rgba(var(--ebook-primary-rgb), 0.28);
+            background: rgba(var(--ebook-primary-rgb), 0.05);
+            color: #486581;
+            font-size: 13px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .toc-body.locked-preview-area {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .toc-locked-watermark {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        .toc-locked-watermark span {
+            transform: rotate(-18deg);
+            font-family: var(--ebook-title-font);
+            font-size: clamp(18px, 4vw, 30px);
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: rgba(var(--ebook-primary-rgb), 0.11);
+            user-select: none;
+            white-space: nowrap;
         }
 
         .hero-badge {
@@ -248,12 +339,18 @@
             <img src="{{ asset('MySIFA.png') }}" alt="MySIFA" class="page-logo">
         </div>
         <div class="right">
-            <form method="POST" action="{{ route('member.logout') }}" class="d-inline">
-                @csrf
-                <button type="submit" class="headerButton text-light border-0 bg-transparent" title="Logout Member">
-                    <ion-icon name="log-out-outline"></ion-icon>
-                </button>
-            </form>
+            @if (!empty($isMember))
+                <form method="POST" action="{{ route('member.logout') }}" class="d-inline">
+                    @csrf
+                    <button type="submit" class="headerButton text-light border-0 bg-transparent" title="Logout Member">
+                        <ion-icon name="log-out-outline"></ion-icon>
+                    </button>
+                </form>
+            @else
+                <a href="{{ route('member.login') }}" class="headerButton text-light" title="Login Member">
+                    <ion-icon name="person-circle-outline"></ion-icon>
+                </a>
+            @endif
             <a href="#daftar-isi" class="headerButton text-light">
                 <ion-icon name="list-outline"></ion-icon>
             </a>
@@ -300,24 +397,55 @@
 
             @foreach ($chapters as $index => $chapter)
                 <div class="toc-card" style="animation-delay: {{ $index * 0.05 }}s;">
+                    @php
+                        $isChapterUnlocked = !empty($isMember) || $index === 0;
+                    @endphp
                     <div class="toc-head" data-bs-toggle="collapse" data-bs-target="#chapter-{{ $index }}" aria-expanded="{{ $index === 0 ? 'true' : 'false' }}">
                         <div>
                             <span class="toc-no">{{ $index + 1 }}</span>
                             {{ $chapter['title'] }}
                         </div>
-                        <ion-icon name="chevron-down-outline"></ion-icon>
+                        <div class="toc-head-right">
+                            @if (!empty($isMember))
+                                <span class="toc-access-badge full">Full Access</span>
+                            @elseif ($index === 0)
+                                <span class="toc-access-badge preview">Preview</span>
+                            @else
+                                <a href="{{ route('member.login') }}" class="toc-access-badge locked locked-link" onclick="event.stopPropagation();" title="Login member untuk buka bab ini">Locked</a>
+                            @endif
+                            <ion-icon name="chevron-down-outline"></ion-icon>
+                        </div>
                     </div>
                     <div id="chapter-{{ $index }}" class="collapse {{ $index === 0 ? 'show' : '' }}">
-                        <div class="toc-body">
-                            <ul class="toc-list">
-                                @foreach ($chapter['items'] as $item)
-                                    <li>
-                                        <a href="{{ route('ebook.point', ['slug' => $item['slug']]) }}" style="color: var(--ebook-primary); font-weight: 600;">
-                                            {{ $item['title'] }}
-                                        </a>
-                                    </li>
-                                @endforeach
-                            </ul>
+                        <div class="toc-body {{ $isChapterUnlocked ? '' : 'locked-preview-area' }}">
+                            @if ($isChapterUnlocked)
+                                <ul class="toc-list">
+                                    @foreach ($chapter['items'] as $item)
+                                        <li>
+                                            <a href="{{ route('ebook.point', ['slug' => $item['slug']]) }}" style="color: var(--ebook-primary); font-weight: 600;">
+                                                {{ $item['title'] }}
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <div class="toc-locked-watermark" aria-hidden="true">
+                                    <span>Preview</span>
+                                </div>
+                                <ul class="toc-list">
+                                    @foreach ($chapter['items'] as $item)
+                                        <li>
+                                            <a href="{{ route('ebook.point', ['slug' => $item['slug']]) }}" style="color: var(--ebook-primary); font-weight: 600;">
+                                                {{ $item['title'] }}
+                                            </a>
+                                            <ion-icon name="lock-closed-outline" class="toc-point-locked"></ion-icon>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                                <div class="toc-locked-note">
+                                    Isi poin untuk bab ini terkunci. Silakan login atau daftar member untuk membuka konten lengkap.
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>

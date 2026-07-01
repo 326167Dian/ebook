@@ -9,11 +9,9 @@ use App\Http\Controllers\MemberAuthController;
 use App\Http\Controllers\StoragePublicFileController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('member.access')->group(function () {
-    Route::get('/', [EbookController::class, 'index'])->name('ebook.home');
-    Route::get('/ebook', [EbookController::class, 'index'])->name('ebook.alias');
-    Route::get('/ebook/poin/{slug}', [EbookController::class, 'point'])->name('ebook.point');
-});
+Route::get('/', [EbookController::class, 'index'])->name('ebook.home');
+Route::get('/ebook', [EbookController::class, 'index'])->name('ebook.alias');
+Route::get('/ebook/poin/{slug}', [EbookController::class, 'point'])->name('ebook.point');
 
 Route::middleware('guest')->group(function () {
     Route::get('/member/login', [MemberAuthController::class, 'showLogin'])->name('member.login');

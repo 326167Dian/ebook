@@ -131,6 +131,42 @@
             font-family: var(--ebook-body-font);
         }
 
+        .locked-content-box {
+            border-radius: 14px;
+            padding: 16px;
+            border: 1px dashed rgba(var(--ebook-primary-rgb), 0.35);
+            background: rgba(var(--ebook-primary-rgb), 0.05);
+        }
+
+        .locked-preview-watermark {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .locked-preview-watermark span {
+            transform: rotate(-22deg);
+            font-family: var(--ebook-title-font);
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            font-size: clamp(22px, 6vw, 42px);
+            color: rgba(var(--ebook-primary-rgb), 0.14);
+            text-transform: uppercase;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        .locked-content-title {
+            font-family: var(--ebook-title-font);
+            font-weight: 800;
+            color: var(--ebook-title-color);
+            margin-bottom: 8px;
+        }
+
         .point-content img {
             max-width: 100%;
             height: auto;
@@ -353,12 +389,18 @@
         </div>
         <div class="pageTitle text-light">Detail Poin</div>
         <div class="right">
-            <form method="POST" action="{{ route('member.logout') }}" class="d-inline">
-                @csrf
-                <button type="submit" class="headerButton text-light border-0 bg-transparent" title="Logout Member">
-                    <ion-icon name="log-out-outline"></ion-icon>
-                </button>
-            </form>
+            @if (!empty($isMember))
+                <form method="POST" action="{{ route('member.logout') }}" class="d-inline">
+                    @csrf
+                    <button type="submit" class="headerButton text-light border-0 bg-transparent" title="Logout Member">
+                        <ion-icon name="log-out-outline"></ion-icon>
+                    </button>
+                </form>
+            @else
+                <a href="{{ route('member.login') }}" class="headerButton text-light" title="Login Member">
+                    <ion-icon name="person-circle-outline"></ion-icon>
+                </a>
+            @endif
         </div>
     </div>
 
@@ -387,53 +429,68 @@
         </div>
 
         <div class="section mt-3">
-            <div class="point-content">
-                @php
-                    $normalizedPointContent = (string) ($point['content'] ?? '');
-                    $normalizedPointContent = preg_replace(
-                        '#https?://[^"\'<>]*/uploads/ebook-editor/#i',
-                        '/uploads/ebook-editor/',
-                        $normalizedPointContent
-                    );
-                @endphp
-
-                @if ($normalizedPointContent !== '')
-                    {!! $normalizedPointContent !!}
-                @else
-                    <p class="mb-0">Konten untuk poin ini belum diisi. Silakan login admin untuk menambahkan isi halaman.</p>
+            <div class="point-content" style="position: relative;">
+                @if (!empty($isPointLocked))
+                    <div class="locked-preview-watermark" aria-hidden="true">
+                        <span>Preview Mode</span>
+                    </div>
                 @endif
 
-                @php
-                    $documents = collect($point['documents'] ?? []);
-                    if ($documents->isEmpty() && !empty($point['document_path'])) {
-                        $documents = collect([[ 'path' => $point['document_path'], 'name' => $point['document_name'] ?? '' ]]);
-                    }
-                @endphp
+                @if (!empty($isPointLocked))
+                    <div class="locked-content-box">
+                        <div class="locked-content-title">Konten Terkunci untuk Member</div>
+                        <p class="mb-2">Anda sudah bisa melihat judul poin, tetapi isi poin ini hanya tersedia untuk member aktif.</p>
+                        <a href="{{ route('member.login') }}" class="btn btn-primary btn-sm me-1">Login Member</a>
+                        <a href="{{ route('member.register') }}" class="btn btn-outline-primary btn-sm">Daftar Member</a>
+                    </div>
+                @else
+                    @php
+                        $normalizedPointContent = (string) ($point['content'] ?? '');
+                        $normalizedPointContent = preg_replace(
+                            '#https?://[^"\'<>]*/uploads/ebook-editor/#i',
+                            '/uploads/ebook-editor/',
+                            $normalizedPointContent
+                        );
+                    @endphp
 
-                @if ($documents->isNotEmpty())
-                    <div class="point-download-box">
-                        <div>
-                            <div class="point-download-title">Dokumen Lampiran</div>
-                            <div class="point-download-meta">
-                                {{ $documents->count() }} dokumen siap diunduh
+                    @if ($normalizedPointContent !== '')
+                        {!! $normalizedPointContent !!}
+                    @else
+                        <p class="mb-0">Konten untuk poin ini belum diisi. Silakan login admin untuk menambahkan isi halaman.</p>
+                    @endif
+
+                    @php
+                        $documents = collect($point['documents'] ?? []);
+                        if ($documents->isEmpty() && !empty($point['document_path'])) {
+                            $documents = collect([[ 'path' => $point['document_path'], 'name' => $point['document_name'] ?? '' ]]);
+                        }
+                    @endphp
+
+                    @if ($documents->isNotEmpty())
+                        <div class="point-download-box">
+                            <div>
+                                <div class="point-download-title">Dokumen Lampiran</div>
+                                <div class="point-download-meta">
+                                    {{ $documents->count() }} dokumen siap diunduh
+                                </div>
+                            </div>
+                            <div class="point-document-list w-100">
+                                @foreach ($documents as $document)
+                                    @if (!empty($document['path']))
+                                        <div class="point-document-item">
+                                            <div>
+                                                <div class="point-document-item-name">{{ $document['name'] ?: basename($document['path']) }}</div>
+                                                <div class="point-document-item-meta">{{ basename($document['path']) }}</div>
+                                            </div>
+                                            <a href="{{ asset($document['path']) }}" class="btn btn-sm btn-outline-primary" download>
+                                                Download
+                                            </a>
+                                        </div>
+                                    @endif
+                                @endforeach
                             </div>
                         </div>
-                        <div class="point-document-list w-100">
-                            @foreach ($documents as $document)
-                                @if (!empty($document['path']))
-                                    <div class="point-document-item">
-                                        <div>
-                                            <div class="point-document-item-name">{{ $document['name'] ?: basename($document['path']) }}</div>
-                                            <div class="point-document-item-meta">{{ basename($document['path']) }}</div>
-                                        </div>
-                                        <a href="{{ asset($document['path']) }}" class="btn btn-sm btn-outline-primary" download>
-                                            Download
-                                        </a>
-                                    </div>
-                                @endif
-                            @endforeach
-                        </div>
-                    </div>
+                    @endif
                 @endif
             </div>
         </div>

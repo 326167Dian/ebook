@@ -7,6 +7,7 @@ use App\Models\EbookContent;
 use App\Models\Member;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class EbookEditorController extends Controller
@@ -15,8 +16,13 @@ class EbookEditorController extends Controller
     {
         $content = EbookContent::query()->firstOrCreate([], EbookContent::defaultData());
         $content->chapters = EbookContent::normalizeChapters($content->chapters ?? []);
-        $pendingMembers = Member::query()->where('is_active', false)->latest()->get();
-        $approvedMembers = Member::query()->where('is_active', true)->latest()->limit(20)->get();
+        $pendingMembers = collect();
+        $approvedMembers = collect();
+
+        if (Schema::hasTable('members')) {
+            $pendingMembers = Member::query()->where('is_active', false)->latest()->get();
+            $approvedMembers = Member::query()->where('is_active', true)->latest()->limit(20)->get();
+        }
 
         return view('admin.editor', [
             'content' => $content,
