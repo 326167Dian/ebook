@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Editor Frontend E-Book</title>
+    <link rel="stylesheet" href="{{ asset('Mobilekit/HTML/assets/css/style.css') }}">
+    <style>
+        :root {
+            --editor-primary: #1f66ba;
+            --editor-secondary: #4aa4ea;
+            --editor-soft: #eef7ff;
+        }
+
+        body {
+            background: radial-gradient(circle at 15% 0%, #f7fcff 0, #eaf5ff 45%, #dcebfa 100%);
+            min-height: 100vh;
+        }
+
+        .appHeader {
+            background: linear-gradient(120deg, var(--editor-primary), var(--editor-secondary));
+        }
+
+        .editor-panel {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 16px 32px rgba(31, 102, 186, 0.13);
+            border: 1px solid rgba(31, 102, 186, 0.08);
+        }
+
+        .chapter-card {
+            background: var(--editor-soft);
+            border: 1px solid rgba(31, 102, 186, 0.12);
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .point-card {
+            border: 1px dashed rgba(31, 102, 186, 0.35);
+            border-radius: 12px;
+            padding: 10px;
+            background: #ffffff;
+            margin-top: 10px;
+        }
+
+        .ck-editor__editable {
+            min-height: 160px;
+        }
+
+        .btn-ebook {
+            background: var(--editor-primary);
+            border: 0;
+            color: #fff;
+        }
+
+        .btn-ebook:hover {
+            color: #fff;
+            background: #2b7fd2;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loader">
+        <div class="spinner-border text-primary" role="status"></div>
+    </div>
+
+    <div class="appHeader text-light">
+        <div class="left"></div>
+        <div class="pageTitle text-light">Editor Frontend E-Book</div>
+        <div class="right">
+            <form method="POST" action="{{ route('admin.logout') }}">
+                @csrf
+                <button type="submit" class="headerButton text-light" style="border:0; background:transparent;">
+                    <ion-icon name="log-out-outline"></ion-icon>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="appCapsule" class="pt-4 pb-4">
+        <div class="section">
+            <div class="editor-panel p-3 p-md-4">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                    <div>
+                        <h2 class="mb-1">Pengaturan Konten Halaman E-Book</h2>
+                        <p class="text-secondary mb-0">Semua perubahan di sini langsung memengaruhi halaman publik.</p>
+                    </div>
+                    <a href="{{ route('ebook.home') }}" class="btn btn-outline-secondary">Lihat Halaman Publik</a>
+                </div>
+
+                @if (session('status'))
+                    <div class="alert alert-success">{{ session('status') }}</div>
+                @endif
+
+                @if ($errors->any())
+                    <div class="alert alert-danger">
+                        <ul class="mb-0 ps-3">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <form method="POST" action="{{ route('admin.editor.update') }}" id="editor-form">
+                    @csrf
+
+                    @php
+                        $formChapters = old('chapters', $content->chapters ?? []);
+                    @endphp
+
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <label class="form-label">Badge Hero</label>
+                            <input type="text" class="form-control" name="badge" value="{{ old('badge', $content->badge) }}" required>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label">Judul Hero</label>
+                            <input type="text" class="form-control" name="hero_title" value="{{ old('hero_title', $content->hero_title) }}" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <label class="form-label">Deskripsi Hero</label>
+                        <textarea class="form-control" rows="3" name="hero_description" required>{{ old('hero_description', $content->hero_description) }}</textarea>
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <label class="form-label">Catatan Pengantar</label>
+                        <textarea class="form-control" rows="4" name="intro_note">{{ old('intro_note', $content->intro_note) }}</textarea>
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <label class="form-label">Path Cover (relatif dari public)</label>
+                        <input type="text" class="form-control" name="cover_image" placeholder="contoh: coverebook/coverebook.png" value="{{ old('cover_image', $content->cover_image) }}">
+                    </div>
+
+                    <hr class="mt-4 mb-3">
+
+                    <h3 class="mb-2">Tema Warna Frontend</h3>
+                    <p class="text-secondary mb-3">Atur nuansa warna halaman publik eBook menggunakan color picker.</p>
+
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <label class="form-label">Warna Utama</label>
+                            <input type="color" class="form-control form-control-color w-100" name="theme_primary" value="{{ old('theme_primary', $content->theme_primary ?? '#1e5fae') }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Warna Sekunder</label>
+                            <input type="color" class="form-control form-control-color w-100" name="theme_secondary" value="{{ old('theme_secondary', $content->theme_secondary ?? '#4ea3e6') }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Warna Aksen</label>
+                            <input type="color" class="form-control form-control-color w-100" name="theme_accent" value="{{ old('theme_accent', $content->theme_accent ?? '#9fd8ff') }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Latar Awal</label>
+                            <input type="color" class="form-control form-control-color w-100" name="theme_bg_start" value="{{ old('theme_bg_start', $content->theme_bg_start ?? '#f7fcff') }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Latar Akhir</label>
+                            <input type="color" class="form-control form-control-color w-100" name="theme_bg_end" value="{{ old('theme_bg_end', $content->theme_bg_end ?? '#dcebfa') }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Warna Teks Utama</label>
+                            <input type="color" class="form-control form-control-color w-100" name="theme_text" value="{{ old('theme_text', $content->theme_text ?? '#16314f') }}" required>
+                        </div>
+                    </div>
+
+                    <hr class="mt-4 mb-3">
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h3 class="mb-0">Daftar Isi</h3>
+                        <button type="button" class="btn btn-outline-primary" id="add-chapter">Tambah Bab</button>
+                    </div>
+
+                    <div id="chapters-wrapper">
+                        @foreach ($formChapters as $index => $chapter)
+                            <div class="chapter-card">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <strong>Bab <span class="chapter-number">{{ $index + 1 }}</span></strong>
+                                    <button type="button" class="btn btn-sm btn-outline-danger remove-chapter">Hapus</button>
+                                </div>
+
+                                <div class="form-group mb-2">
+                                    <label class="form-label">Judul Bab</label>
+                                    <input type="text" class="form-control chapter-title" name="chapters[{{ $index }}][title]" value="{{ $chapter['title'] ?? '' }}" required>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mt-2 mb-1">
+                                    <label class="form-label mb-0">Poin Bab</label>
+                                    <button type="button" class="btn btn-sm btn-outline-primary add-point">Tambah Poin</button>
+                                </div>
+
+                                <div class="points-wrapper">
+                                    @foreach (($chapter['items'] ?? []) as $pointIndex => $point)
+                                        <div class="point-card">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <strong>Poin <span class="point-number">{{ $pointIndex + 1 }}</span></strong>
+                                                <button type="button" class="btn btn-sm btn-outline-danger remove-point">Hapus Poin</button>
+                                            </div>
+
+                                            <div class="form-group mb-2">
+                                                <label class="form-label">Judul Poin</label>
+                                                <input type="text" class="form-control point-title" name="chapters[{{ $index }}][items][{{ $pointIndex }}][title]" value="{{ $point['title'] ?? '' }}" required>
+                                            </div>
+
+                                            <div class="form-group mb-0">
+                                                <label class="form-label">Isi Halaman Poin</label>
+                                                <textarea class="form-control point-content" name="chapters[{{ $index }}][items][{{ $pointIndex }}][content]" rows="4" placeholder="Tuliskan isi halaman detail untuk poin ini...">{{ $point['content'] ?? '' }}</textarea>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <button type="submit" class="btn btn-ebook btn-block mt-3">Simpan Perubahan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <template id="chapter-template">
+        <div class="chapter-card">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong>Bab <span class="chapter-number">1</span></strong>
+                <button type="button" class="btn btn-sm btn-outline-danger remove-chapter">Hapus</button>
+            </div>
+
+            <div class="form-group mb-2">
+                <label class="form-label">Judul Bab</label>
+                <input type="text" class="form-control chapter-title" required>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-2 mb-1">
+                <label class="form-label mb-0">Poin Bab</label>
+                <button type="button" class="btn btn-sm btn-outline-primary add-point">Tambah Poin</button>
+            </div>
+
+            <div class="points-wrapper"></div>
+        </div>
+    </template>
+
+    <template id="point-template">
+        <div class="point-card">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong>Poin <span class="point-number">1</span></strong>
+                <button type="button" class="btn btn-sm btn-outline-danger remove-point">Hapus Poin</button>
+            </div>
+
+            <div class="form-group mb-2">
+                <label class="form-label">Judul Poin</label>
+                <input type="text" class="form-control point-title" required>
+            </div>
+
+            <div class="form-group mb-0">
+                <label class="form-label">Isi Halaman Poin</label>
+                <textarea class="form-control point-content" rows="4" placeholder="Tuliskan isi halaman detail untuk poin ini..."></textarea>
+            </div>
+        </div>
+    </template>
+
+    <script src="{{ asset('Mobilekit/HTML/assets/js/lib/bootstrap.min.js') }}"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    <script src="{{ asset('Mobilekit/HTML/assets/js/base.js') }}"></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+    <script>
+        const wrapper = document.getElementById('chapters-wrapper');
+        const chapterTemplate = document.getElementById('chapter-template');
+        const pointTemplate = document.getElementById('point-template');
+        const addChapterButton = document.getElementById('add-chapter');
+        const editorForm = document.getElementById('editor-form');
+        const editorInstances = new Map();
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const uploadUrl = "{{ route('admin.ckeditor.upload') }}";
+
+        class LaravelUploadAdapter {
+            constructor(loader) {
+                this.loader = loader;
+                this.abortController = new AbortController();
+            }
+
+            upload() {
+                return this.loader.file.then((file) => {
+                    const formData = new FormData();
+                    formData.append('upload', file);
+
+                    return fetch(uploadUrl, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        },
+                        signal: this.abortController.signal
+                    })
+                        .then(async (response) => {
+                            const data = await response.json();
+
+                            if (!response.ok || !data.url) {
+                                throw new Error(data.message || 'Upload gambar gagal.');
+                            }
+
+                            return {
+                                default: data.url
+                            };
+                        });
+                });
+            }
+
+            abort() {
+                this.abortController.abort();
+            }
+        }
+
+        function editorPlugin(editor) {
+            editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+                return new LaravelUploadAdapter(loader);
+            };
+        }
+
+        function initEditorForTextarea(textarea) {
+            if (!textarea || textarea.dataset.ckeditorInitialized === '1') {
+                return;
+            }
+
+            ClassicEditor
+                .create(textarea, {
+                    extraPlugins: [editorPlugin],
+                    toolbar: [
+                        'heading', '|',
+                        'imageUpload',
+                        'bold', 'italic', 'link', '|',
+                        'bulletedList', 'numberedList', '|',
+                        'blockQuote', 'undo', 'redo'
+                    ]
+                })
+                .then((editor) => {
+                    textarea.dataset.ckeditorInitialized = '1';
+                    editorInstances.set(textarea, editor);
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+        }
+
+        function initEditorsIn(container) {
+            container.querySelectorAll('.point-content').forEach((textarea) => {
+                initEditorForTextarea(textarea);
+            });
+        }
+
+        function destroyEditorForTextarea(textarea) {
+            const editor = editorInstances.get(textarea);
+            if (!editor) {
+                return;
+            }
+
+            editor.destroy();
+            editorInstances.delete(textarea);
+            delete textarea.dataset.ckeditorInitialized;
+        }
+
+        function refreshIndexes() {
+            const chapterCards = wrapper.querySelectorAll('.chapter-card');
+
+            chapterCards.forEach((chapterCard, chapterIndex) => {
+                chapterCard.querySelector('.chapter-number').textContent = chapterIndex + 1;
+                chapterCard.querySelector('.chapter-title').name = `chapters[${chapterIndex}][title]`;
+
+                const pointCards = chapterCard.querySelectorAll('.point-card');
+                pointCards.forEach((pointCard, pointIndex) => {
+                    pointCard.querySelector('.point-number').textContent = pointIndex + 1;
+                    pointCard.querySelector('.point-title').name = `chapters[${chapterIndex}][items][${pointIndex}][title]`;
+                    pointCard.querySelector('.point-content').name = `chapters[${chapterIndex}][items][${pointIndex}][content]`;
+                });
+            });
+        }
+
+        function ensurePoint(chapterCard) {
+            const pointsWrapper = chapterCard.querySelector('.points-wrapper');
+
+            if (pointsWrapper.querySelectorAll('.point-card').length === 0) {
+                pointsWrapper.appendChild(pointTemplate.content.cloneNode(true));
+            }
+        }
+
+        function addChapter() {
+            wrapper.appendChild(chapterTemplate.content.cloneNode(true));
+            const chapterCard = wrapper.lastElementChild;
+            ensurePoint(chapterCard);
+            refreshIndexes();
+            initEditorsIn(chapterCard);
+        }
+
+        function addPoint(chapterCard) {
+            chapterCard.querySelector('.points-wrapper').appendChild(pointTemplate.content.cloneNode(true));
+            refreshIndexes();
+            initEditorsIn(chapterCard);
+        }
+
+        addChapterButton.addEventListener('click', addChapter);
+
+        wrapper.addEventListener('click', (event) => {
+            const addPointButton = event.target.closest('.add-point');
+            if (addPointButton) {
+                addPoint(addPointButton.closest('.chapter-card'));
+                return;
+            }
+
+            const removePointButton = event.target.closest('.remove-point');
+            if (removePointButton) {
+                const chapterCard = removePointButton.closest('.chapter-card');
+                const points = chapterCard.querySelectorAll('.point-card');
+                if (points.length <= 1) {
+                    return;
+                }
+
+                const pointCard = removePointButton.closest('.point-card');
+                const textarea = pointCard.querySelector('.point-content');
+                destroyEditorForTextarea(textarea);
+
+                pointCard.remove();
+                refreshIndexes();
+                return;
+            }
+
+            const removeChapterButton = event.target.closest('.remove-chapter');
+            if (removeChapterButton) {
+                const chapterCards = wrapper.querySelectorAll('.chapter-card');
+                if (chapterCards.length <= 1) {
+                    return;
+                }
+
+                removeChapterButton.closest('.chapter-card').remove();
+                refreshIndexes();
+            }
+        });
+
+        wrapper.querySelectorAll('.chapter-card').forEach((chapterCard) => {
+            ensurePoint(chapterCard);
+        });
+
+        if (wrapper.querySelectorAll('.chapter-card').length === 0) {
+            addChapter();
+        }
+
+        initEditorsIn(wrapper);
+
+        editorForm.addEventListener('submit', () => {
+            editorInstances.forEach((editor) => {
+                editor.updateSourceElement();
+            });
+        });
+
+        refreshIndexes();
+    </script>
+</body>
+
+</html>
