@@ -78,6 +78,20 @@
             color: #fff !important;
         }
 
+        .appHeader .pageTitle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .appHeader .page-logo {
+            display: block;
+            max-height: 32px;
+            width: auto;
+            object-fit: contain;
+        }
+
         #appCapsule {
             padding-top: 78px;
             padding-bottom: 24px;
@@ -230,7 +244,9 @@
                 <ion-icon name="arrow-up-outline"></ion-icon>
             </a>
         </div>
-        <div class="pageTitle text-light">{{ $content->hero_title }}</div>
+        <div class="pageTitle text-light">
+            <img src="{{ asset('MySIFA.png') }}" alt="MySIFA" class="page-logo">
+        </div>
         <div class="right">
             <a href="{{ route('admin.login') }}" class="headerButton text-light" title="Login Admin">
                 <ion-icon name="person-circle-outline"></ion-icon>
