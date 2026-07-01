@@ -57,3 +57,31 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Deploy Notes (Shared Hosting)
+
+Jika hosting tidak mengizinkan `php artisan storage:link`, project ini sudah menyediakan fallback route `GET /storage-public/{path}` yang membaca file langsung dari `storage/app/public`.
+
+Agar login admin stabil di hosting:
+
+1. Pastikan `.env` menggunakan session database:
+
+```env
+SESSION_DRIVER=database
+```
+
+2. Jalankan migrasi di server (wajib untuk tabel `sessions`):
+
+```bash
+php artisan migrate --force
+```
+
+3. Bersihkan cache config/route/view setelah deploy:
+
+```bash
+php artisan optimize:clear
+php artisan config:cache
+php artisan route:cache
+```
+
+Catatan: pastikan juga `APP_URL` sudah sesuai domain produksi.

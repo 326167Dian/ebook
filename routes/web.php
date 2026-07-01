@@ -4,11 +4,15 @@ use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\CkeditorUploadController;
 use App\Http\Controllers\Admin\EbookEditorController;
 use App\Http\Controllers\EbookController;
+use App\Http\Controllers\StoragePublicFileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [EbookController::class, 'index'])->name('ebook.home');
 Route::get('/ebook', [EbookController::class, 'index'])->name('ebook.alias');
 Route::get('/ebook/poin/{slug}', [EbookController::class, 'point'])->name('ebook.point');
+Route::get('/storage-public/{path}', [StoragePublicFileController::class, 'show'])
+    ->where('path', '.*')
+    ->name('storage.public.show');
 
 Route::middleware('guest')->group(function () {
     Route::get('/admin/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');
