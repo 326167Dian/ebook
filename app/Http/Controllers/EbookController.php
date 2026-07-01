@@ -47,26 +47,42 @@ class EbookController extends Controller
         }
 
         $chapters = EbookContent::normalizeChapters($content->chapters ?? []);
+        $flatPoints = [];
 
         $selectedChapter = null;
         $selectedPoint = null;
 
         foreach ($chapters as $chapter) {
             foreach ($chapter['items'] as $point) {
+                $flatPoints[] = [
+                    'chapter' => $chapter,
+                    'point' => $point,
+                ];
+
                 if (($point['slug'] ?? '') === $slug) {
                     $selectedChapter = $chapter;
                     $selectedPoint = $point;
-                    break 2;
                 }
             }
         }
 
         abort_if(!$selectedPoint, 404);
 
+        $currentIndex = collect($flatPoints)->search(fn (array $entry) => ($entry['point']['slug'] ?? '') === $slug);
+        $previousPoint = $currentIndex !== false && $currentIndex > 0 ? $flatPoints[$currentIndex - 1] : null;
+        $nextPoint = $currentIndex !== false && $currentIndex < count($flatPoints) - 1 ? $flatPoints[$currentIndex + 1] : null;
+        $pointNumber = $currentIndex !== false ? $currentIndex + 1 : null;
+        $totalPoints = count($flatPoints);
+
         return view('ebook.point', [
             'content' => $content,
             'chapter' => $selectedChapter,
             'point' => $selectedPoint,
+            'chapterPoints' => $selectedChapter['items'] ?? [],
+            'previousPoint' => $previousPoint,
+            'nextPoint' => $nextPoint,
+            'pointNumber' => $pointNumber,
+            'totalPoints' => $totalPoints,
         ]);
     }
 }

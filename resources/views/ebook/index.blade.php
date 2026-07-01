@@ -32,6 +32,7 @@
     <title>E-Book Bisnis Apotek</title>
 
     <link rel="stylesheet" href="{{ asset('Mobilekit/HTML/assets/css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/ebook-typography.css') }}">
 
     <style>
         :root {
@@ -47,13 +48,34 @@
         }
 
         body {
-            background: radial-gradient(circle at 20% 0%, var(--ebook-bg-start) 0, #eaf5ff 45%, var(--ebook-bg-end) 100%);
+            background: var(--ebook-app-background);
             color: var(--ebook-text);
+            font-family: var(--ebook-body-font);
+            min-height: 100vh;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        .section-title,
+        .toc-head,
+        .pageTitle {
+            font-family: var(--ebook-title-font);
+            font-weight: 800;
+            color: var(--ebook-title-color);
         }
 
         .appHeader {
             background: linear-gradient(90deg, var(--ebook-primary), var(--ebook-secondary));
             box-shadow: 0 10px 28px rgba(var(--ebook-primary-rgb), 0.25);
+        }
+
+        .appHeader .pageTitle,
+        .appHeader .headerButton {
+            color: #fff !important;
         }
 
         #appCapsule {
@@ -62,13 +84,14 @@
         }
 
         .hero-box {
-            background: linear-gradient(165deg, var(--ebook-primary) 0%, var(--ebook-secondary) 100%);
-            color: #fff;
+            background: rgba(255, 255, 255, 0.94);
+            color: var(--ebook-text);
             border-radius: 20px;
             padding: 20px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 20px 35px rgba(var(--ebook-primary-rgb), 0.22);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 20px 35px rgba(16, 42, 67, 0.18);
         }
 
         .hero-box::after {
@@ -78,14 +101,22 @@
             position: absolute;
             right: -65px;
             top: -65px;
-            background: radial-gradient(circle, rgba(var(--ebook-accent-rgb), 0.55) 0, rgba(var(--ebook-accent-rgb), 0) 70%);
+            background: radial-gradient(circle, rgba(var(--ebook-primary-rgb), 0.16) 0, rgba(var(--ebook-accent-rgb), 0) 70%);
+        }
+
+        .hero-box h2 {
+            color: var(--ebook-title-color);
+        }
+
+        .hero-box .text-light {
+            color: #486581 !important;
         }
 
         .cover-frame {
             border-radius: 14px;
             overflow: hidden;
-            border: 3px solid rgba(255, 255, 255, 0.2);
-            background: var(--ebook-primary);
+            border: 3px solid rgba(255, 255, 255, 0.35);
+            background: rgba(255, 255, 255, 0.18);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -109,8 +140,8 @@
         .toc-card {
             border-radius: 16px;
             background: var(--ebook-card);
-            box-shadow: 0 14px 30px rgba(var(--ebook-primary-rgb), 0.12);
-            border: 1px solid rgba(var(--ebook-primary-rgb), 0.08);
+            box-shadow: 0 14px 30px rgba(16, 42, 67, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.38);
             animation: riseIn 0.55s ease both;
         }
 
@@ -123,8 +154,7 @@
             align-items: center;
             justify-content: space-between;
             padding: 14px 16px;
-            font-weight: 700;
-            color: var(--ebook-primary);
+            color: var(--ebook-title-color);
             cursor: pointer;
         }
 
@@ -155,15 +185,24 @@
         }
 
         .hero-badge {
-            background: rgba(var(--ebook-accent-rgb), 0.28);
-            color: #eaf7ff;
-            border: 1px solid rgba(234, 247, 255, 0.45);
+            background: rgba(var(--ebook-primary-rgb), 0.1);
+            color: var(--ebook-title-color);
+            border: 1px solid rgba(var(--ebook-primary-rgb), 0.12);
             font-size: 12px;
             font-weight: 600;
             border-radius: 999px;
             padding: 5px 10px;
             display: inline-block;
             margin-bottom: 10px;
+        }
+
+        .toc-list,
+        .toc-list li,
+        .toc-list a,
+        p,
+        .text-secondary,
+        .text-muted {
+            font-family: var(--ebook-body-font);
         }
 
         @keyframes riseIn {

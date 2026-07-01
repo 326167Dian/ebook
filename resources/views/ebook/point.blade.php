@@ -32,6 +32,7 @@
     <title>{{ $point['title'] }} - E-Book Bisnis Apotek</title>
 
     <link rel="stylesheet" href="{{ asset('Mobilekit/HTML/assets/css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/ebook-typography.css') }}">
 
     <style>
         :root {
@@ -46,27 +47,60 @@
         }
 
         body {
-            background: radial-gradient(circle at 20% 0%, var(--ebook-bg-start) 0, #eaf5ff 45%, var(--ebook-bg-end) 100%);
+            background: var(--ebook-app-background);
             color: var(--ebook-text);
+            font-family: var(--ebook-body-font);
+            min-height: 100vh;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        .pageTitle,
+        .point-nav-title {
+            font-family: var(--ebook-title-font);
+            font-weight: 800;
+            color: var(--ebook-title-color);
         }
 
         .appHeader {
             background: linear-gradient(90deg, var(--ebook-primary), var(--ebook-secondary));
             box-shadow: 0 10px 28px rgba(var(--ebook-primary-rgb), 0.25);
+            min-height: 56px;
+        }
+
+        .appHeader .pageTitle,
+        .appHeader .headerButton {
+            color: #fff !important;
         }
 
         #appCapsule {
-            padding-top: 80px;
-            padding-bottom: 24px;
+            padding-top: 72px;
+            padding-bottom: 20px;
+        }
+
+        .appHeader .pageTitle {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .appHeader .headerButton {
+            width: 40px;
+            height: 40px;
         }
 
         .point-hero {
             border-radius: 16px;
-            background: linear-gradient(165deg, var(--ebook-primary), var(--ebook-secondary));
-            color: #fff;
-            padding: 18px;
+            background: rgba(255, 255, 255, 0.94);
+            color: var(--ebook-text);
+            padding: 16px 18px;
             position: relative;
             overflow: hidden;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 20px 35px rgba(16, 42, 67, 0.18);
         }
 
         .point-hero::after {
@@ -76,16 +110,25 @@
             position: absolute;
             right: -50px;
             top: -50px;
-            background: radial-gradient(circle, rgba(var(--ebook-accent-rgb), 0.5) 0, rgba(var(--ebook-accent-rgb), 0) 70%);
+            background: radial-gradient(circle, rgba(var(--ebook-primary-rgb), 0.16) 0, rgba(var(--ebook-accent-rgb), 0) 70%);
+        }
+
+        .point-hero h2 {
+            color: var(--ebook-title-color);
+        }
+
+        .point-hero .text-light {
+            color: #486581 !important;
         }
 
         .point-content {
             border-radius: 16px;
             background: #fff;
-            border: 1px solid rgba(var(--ebook-primary-rgb), 0.12);
-            box-shadow: 0 12px 24px rgba(var(--ebook-primary-rgb), 0.1);
-            padding: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.38);
+            box-shadow: 0 12px 24px rgba(16, 42, 67, 0.14);
+            padding: 16px 18px;
             line-height: 1.8;
+            font-family: var(--ebook-body-font);
         }
 
         .point-content img {
@@ -99,6 +142,132 @@
             margin-right: 0;
             max-width: 100%;
         }
+
+        .point-progress {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: rgba(var(--ebook-accent-rgb), 0.26);
+            color: var(--ebook-title-color);
+            margin-bottom: 10px;
+            background: rgba(var(--ebook-primary-rgb), 0.1);
+            border: 1px solid rgba(var(--ebook-primary-rgb), 0.12);
+        }
+
+        .point-progress-bar {
+            width: 100%;
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(var(--ebook-primary-rgb), 0.14);
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .point-progress-fill {
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.9), rgba(var(--ebook-accent-rgb), 0.95));
+            box-shadow: 0 4px 10px rgba(var(--ebook-accent-rgb), 0.35);
+        }
+
+        .chapter-points-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .chapter-point-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 999px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.35;
+            color: var(--ebook-title-color);
+            background: rgba(var(--ebook-primary-rgb), 0.1);
+            border: 1px solid rgba(var(--ebook-primary-rgb), 0.12);
+            font-family: var(--ebook-body-font);
+        }
+
+        .chapter-point-chip.active {
+            color: var(--ebook-primary);
+            background: #ffffff;
+            border-color: #ffffff;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+        }
+
+        .point-nav {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .point-nav-link {
+            display: block;
+            border-radius: 14px;
+            padding: 14px 16px;
+            text-decoration: none;
+            background: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.38);
+            box-shadow: 0 12px 24px rgba(16, 42, 67, 0.12);
+            color: var(--ebook-text);
+            min-height: 100%;
+            font-family: var(--ebook-body-font);
+        }
+
+        .point-nav-link.next {
+            text-align: right;
+        }
+
+        .point-nav-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: var(--ebook-title-color);
+            margin-bottom: 4px;
+        }
+
+        .point-nav-title {
+            display: block;
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 576px) {
+            #appCapsule {
+                padding-top: 68px;
+                padding-bottom: 16px;
+            }
+
+            .point-hero,
+            .point-content {
+                border-radius: 14px;
+                padding: 14px;
+            }
+
+            .point-hero h2 {
+                font-size: 1.85rem;
+                line-height: 1.2;
+            }
+
+            .point-nav {
+                grid-template-columns: 1fr;
+            }
+
+            .point-nav-link.next {
+                text-align: left;
+            }
+        }
     </style>
 </head>
 
@@ -109,23 +278,35 @@
 
     <div class="appHeader text-light">
         <div class="left">
-            <a href="{{ route('ebook.home') }}#daftar-isi" class="headerButton text-light">
+            <a href="{{ route('ebook.home') }}#daftar-isi" class="headerButton text-light" onclick="if (window.history.length > 1) { event.preventDefault(); window.history.back(); }">
                 <ion-icon name="arrow-back-outline"></ion-icon>
             </a>
         </div>
         <div class="pageTitle text-light">Detail Poin</div>
-        <div class="right">
-            <a href="{{ route('admin.login') }}" class="headerButton text-light">
-                <ion-icon name="create-outline"></ion-icon>
-            </a>
-        </div>
+        <div class="right"></div>
     </div>
 
     <div id="appCapsule">
         <div class="section mt-2">
             <div class="point-hero">
+                @if (!empty($pointNumber) && !empty($totalPoints))
+                    <div class="point-progress">Poin {{ $pointNumber }} dari {{ $totalPoints }}</div>
+                    <div class="point-progress-bar" aria-hidden="true">
+                        <div class="point-progress-fill" style="width: {{ max(6, min(100, (int) round(($pointNumber / $totalPoints) * 100))) }}%;"></div>
+                    </div>
+                @endif
                 <div class="text-light opacity-75 mb-1">{{ $chapter['title'] }}</div>
                 <h2 class="mb-0">{{ $point['title'] }}</h2>
+
+                @if (!empty($chapterPoints))
+                    <div class="chapter-points-nav">
+                        @foreach ($chapterPoints as $chapterPoint)
+                            <a href="{{ route('ebook.point', ['slug' => $chapterPoint['slug']]) }}" class="chapter-point-chip {{ ($chapterPoint['slug'] ?? '') === ($point['slug'] ?? '') ? 'active' : '' }}">
+                                {{ $chapterPoint['title'] }}
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
             </div>
         </div>
 
@@ -138,6 +319,29 @@
                 @endif
             </div>
         </div>
+
+        @if ($previousPoint || $nextPoint)
+            <div class="section mt-3">
+                <div class="point-nav">
+                    <div>
+                        @if ($previousPoint)
+                            <a href="{{ route('ebook.point', ['slug' => $previousPoint['point']['slug']]) }}" class="point-nav-link previous">
+                                <span class="point-nav-label">Poin Sebelumnya</span>
+                                <span class="point-nav-title">{{ $previousPoint['point']['title'] }}</span>
+                            </a>
+                        @endif
+                    </div>
+                    <div>
+                        @if ($nextPoint)
+                            <a href="{{ route('ebook.point', ['slug' => $nextPoint['point']['slug']]) }}" class="point-nav-link next">
+                                <span class="point-nav-label">Poin Berikutnya</span>
+                                <span class="point-nav-title">{{ $nextPoint['point']['title'] }}</span>
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 
     <script src="{{ asset('Mobilekit/HTML/assets/js/lib/bootstrap.min.js') }}"></script>
