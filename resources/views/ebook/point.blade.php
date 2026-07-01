@@ -352,7 +352,14 @@
             </a>
         </div>
         <div class="pageTitle text-light">Detail Poin</div>
-        <div class="right"></div>
+        <div class="right">
+            <form method="POST" action="{{ route('member.logout') }}" class="d-inline">
+                @csrf
+                <button type="submit" class="headerButton text-light border-0 bg-transparent" title="Logout Member">
+                    <ion-icon name="log-out-outline"></ion-icon>
+                </button>
+            </form>
+        </div>
     </div>
 
     <div id="appCapsule">

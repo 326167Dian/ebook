@@ -248,9 +248,12 @@
             <img src="{{ asset('MySIFA.png') }}" alt="MySIFA" class="page-logo">
         </div>
         <div class="right">
-            <a href="{{ route('admin.login') }}" class="headerButton text-light" title="Login Admin">
-                <ion-icon name="person-circle-outline"></ion-icon>
-            </a>
+            <form method="POST" action="{{ route('member.logout') }}" class="d-inline">
+                @csrf
+                <button type="submit" class="headerButton text-light border-0 bg-transparent" title="Logout Member">
+                    <ion-icon name="log-out-outline"></ion-icon>
+                </button>
+            </form>
             <a href="#daftar-isi" class="headerButton text-light">
                 <ion-icon name="list-outline"></ion-icon>
             </a>

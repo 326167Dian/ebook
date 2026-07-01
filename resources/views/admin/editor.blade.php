@@ -94,6 +94,29 @@
         .section-save-actions .btn {
             box-shadow: 0 8px 18px rgba(31, 102, 186, 0.25);
         }
+
+        .member-approval-card {
+            border-radius: 14px;
+            border: 1px solid rgba(31, 102, 186, 0.14);
+            background: rgba(31, 102, 186, 0.03);
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .member-approval-proof {
+            width: 100%;
+            max-width: 220px;
+            border-radius: 10px;
+            border: 1px solid rgba(31, 102, 186, 0.18);
+            margin-top: 8px;
+        }
+
+        .member-approval-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
     </style>
 </head>
 
@@ -139,6 +162,66 @@
                         </ul>
                     </div>
                 @endif
+
+                <div class="mb-4">
+                    <h3 class="mb-2">Moderasi Member</h3>
+                    <p class="text-secondary mb-2">Approve pendaftar setelah bukti transfer Rp. 99.000 sesuai.</p>
+
+                    @if (($pendingMembers ?? collect())->isEmpty())
+                        <div class="alert alert-light border">Tidak ada pendaftar yang menunggu verifikasi.</div>
+                    @else
+                        @foreach ($pendingMembers as $member)
+                            <div class="member-approval-card">
+                                <div><strong>{{ $member->name }}</strong></div>
+                                <div class="small text-muted">{{ $member->email }}</div>
+                                <div class="small text-muted">Daftar: {{ optional($member->created_at)->format('d M Y H:i') }}</div>
+
+                                @if (!empty($member->payment_proof_path))
+                                    <a href="{{ asset($member->payment_proof_path) }}" target="_blank" rel="noopener">
+                                        <img src="{{ asset($member->payment_proof_path) }}" alt="Bukti Transfer {{ $member->name }}" class="member-approval-proof">
+                                    </a>
+                                @endif
+
+                                <div class="member-approval-actions">
+                                    <form method="POST" action="{{ route('admin.members.approve', $member) }}">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                                    </form>
+                                    <form method="POST" action="{{ route('admin.members.reject', $member) }}">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Tolak</button>
+                                    </form>
+                                </div>
+                            </div>
+                        @endforeach
+                    @endif
+
+                    @if (($approvedMembers ?? collect())->isNotEmpty())
+                        <div class="mt-3">
+                            <h4 class="mb-2">Member Aktif Terbaru</h4>
+                            <div class="table-responsive">
+                                <table class="table table-sm align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Nama</th>
+                                            <th>Email</th>
+                                            <th>Aktif Sejak</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($approvedMembers as $member)
+                                            <tr>
+                                                <td>{{ $member->name }}</td>
+                                                <td>{{ $member->email }}</td>
+                                                <td>{{ optional($member->updated_at)->format('d M Y H:i') }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    @endif
+                </div>
 
                 <form method="POST" action="{{ route('admin.editor.update') }}" id="editor-form" enctype="multipart/form-data">
                     @csrf
