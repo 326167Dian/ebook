@@ -381,8 +381,17 @@
 
         <div class="section mt-3">
             <div class="point-content">
-                @if (!empty($point['content']))
-                    {!! $point['content'] !!}
+                @php
+                    $normalizedPointContent = (string) ($point['content'] ?? '');
+                    $normalizedPointContent = preg_replace(
+                        '#https?://[^"\'<>]*/uploads/ebook-editor/#i',
+                        '/uploads/ebook-editor/',
+                        $normalizedPointContent
+                    );
+                @endphp
+
+                @if ($normalizedPointContent !== '')
+                    {!! $normalizedPointContent !!}
                 @else
                     <p class="mb-0">Konten untuk poin ini belum diisi. Silakan login admin untuk menambahkan isi halaman.</p>
                 @endif

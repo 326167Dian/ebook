@@ -26,7 +26,7 @@ class CkeditorUploadController extends Controller
         $file->move($directory, $filename);
 
         return response()->json([
-            'url' => asset('uploads/ebook-editor/' . $filename),
+            'url' => '/uploads/ebook-editor/' . $filename,
         ]);
     }
 }
