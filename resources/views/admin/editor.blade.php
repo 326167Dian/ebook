@@ -46,6 +46,14 @@
             margin-top: 10px;
         }
 
+        .point-attachment {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 12px;
+            background: rgba(31, 102, 186, 0.04);
+            border: 1px solid rgba(31, 102, 186, 0.12);
+        }
+
         .ck-editor__editable {
             min-height: 160px;
         }
@@ -260,6 +268,36 @@
                                                 <label class="form-label">Isi Halaman Poin</label>
                                                 <textarea class="form-control point-content" name="chapters[{{ $index }}][items][{{ $pointIndex }}][content]" rows="4" placeholder="Tuliskan isi halaman detail untuk poin ini...">{{ $point['content'] ?? '' }}</textarea>
                                             </div>
+
+                                            <div class="point-attachment">
+                                                <label class="form-label">Dokumen Lampiran</label>
+                                                <input type="file" class="form-control point-document" name="chapters[{{ $index }}][items][{{ $pointIndex }}][document_upload][]" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar" multiple>
+                                                <small class="text-muted d-block mt-1">Format: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, ZIP, RAR. Maksimal 5 dokumen, masing-masing 5MB.</small>
+
+                                                @php
+                                                    $existingDocuments = collect($point['documents'] ?? []);
+                                                @endphp
+
+                                                @if ($existingDocuments->isNotEmpty())
+                                                    <div class="mt-3 existing-document-list">
+                                                        @foreach ($existingDocuments as $documentIndex => $document)
+                                                            @if (!empty($document['path']))
+                                                                <div class="existing-document-item" data-existing-document>
+                                                                    <input type="hidden" class="existing-document-path-input" name="chapters[{{ $index }}][items][{{ $pointIndex }}][documents_existing][{{ $documentIndex }}][path]" value="{{ $document['path'] }}">
+                                                                    <input type="hidden" class="existing-document-name-input" name="chapters[{{ $index }}][items][{{ $pointIndex }}][documents_existing][{{ $documentIndex }}][name]" value="{{ $document['name'] ?? basename($document['path']) }}">
+                                                                    <div>
+                                                                        <div class="fw-semibold">{{ $document['name'] ?? basename($document['path']) }}</div>
+                                                                        <div class="small text-muted">{{ basename($document['path']) }}</div>
+                                                                    </div>
+                                                                    <button type="button" class="btn btn-sm btn-outline-danger remove-existing-document">Hapus</button>
+                                                                </div>
+                                                            @endif
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+
+                                                <div class="point-document-preview mt-2"></div>
+                                            </div>
                                         </div>
                                     @endforeach
                                 </div>
@@ -313,6 +351,12 @@
             <div class="form-group mb-0">
                 <label class="form-label">Isi Halaman Poin</label>
                 <textarea class="form-control point-content" rows="4" placeholder="Tuliskan isi halaman detail untuk poin ini..."></textarea>
+            </div>
+
+            <div class="point-attachment">
+                <label class="form-label">Dokumen Lampiran</label>
+                <input type="file" class="form-control point-document" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar">
+                <small class="text-muted d-block mt-1">Format: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, ZIP, RAR. Maksimal 10MB.</small>
             </div>
         </div>
     </template>
@@ -431,6 +475,54 @@
             delete textarea.dataset.ckeditorInitialized;
         }
 
+        function formatFileSize(bytes) {
+            if (bytes < 1024) {
+                return `${bytes} B`;
+            }
+
+            if (bytes < 1024 * 1024) {
+                return `${(bytes / 1024).toFixed(1)} KB`;
+            }
+
+            return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+        }
+
+        function renderDocumentPreview(documentInput) {
+            const attachment = documentInput.closest('.point-attachment');
+            if (!attachment) {
+                return;
+            }
+
+            const preview = attachment.querySelector('.point-document-preview');
+            if (!preview) {
+                return;
+            }
+
+            preview.innerHTML = '';
+
+            Array.from(documentInput.files || []).forEach((file) => {
+                const item = document.createElement('div');
+                item.className = 'point-document-preview-item';
+
+                const info = document.createElement('div');
+                info.className = 'point-document-preview-info';
+
+                const title = document.createElement('div');
+                title.className = 'fw-semibold';
+                title.textContent = file.name;
+
+                const meta = document.createElement('div');
+                meta.className = 'small text-muted';
+                meta.textContent = formatFileSize(file.size);
+
+                info.appendChild(title);
+                info.appendChild(meta);
+                item.appendChild(info);
+
+                preview.appendChild(item);
+            });
+        }
+
         function refreshIndexes() {
             const chapterCards = wrapper.querySelectorAll('.chapter-card');
 
@@ -443,6 +535,20 @@
                     pointCard.querySelector('.point-number').textContent = pointIndex + 1;
                     pointCard.querySelector('.point-title').name = `chapters[${chapterIndex}][items][${pointIndex}][title]`;
                     pointCard.querySelector('.point-content').name = `chapters[${chapterIndex}][items][${pointIndex}][content]`;
+                    pointCard.querySelector('.point-document').name = `chapters[${chapterIndex}][items][${pointIndex}][document_upload][]`;
+
+                    pointCard.querySelectorAll('.existing-document-item').forEach((documentItem, documentIndex) => {
+                        const pathInput = documentItem.querySelector('.existing-document-path-input');
+                        const nameInput = documentItem.querySelector('.existing-document-name-input');
+
+                        if (pathInput) {
+                            pathInput.name = `chapters[${chapterIndex}][items][${pointIndex}][documents_existing][${documentIndex}][path]`;
+                        }
+
+                        if (nameInput) {
+                            nameInput.name = `chapters[${chapterIndex}][items][${pointIndex}][documents_existing][${documentIndex}][name]`;
+                        }
+                    });
                 });
             });
         }
@@ -474,6 +580,19 @@
         addChapterButton.addEventListener('click', addChapter);
 
         wrapper.addEventListener('click', (event) => {
+            const removeExistingDocumentButton = event.target.closest('.remove-existing-document');
+            if (removeExistingDocumentButton) {
+                const attachment = removeExistingDocumentButton.closest('.point-attachment');
+                const documentItem = removeExistingDocumentButton.closest('.existing-document-item');
+
+                if (attachment && documentItem) {
+                    documentItem.remove();
+                    setDirtyState(true);
+                }
+
+                return;
+            }
+
             const addPointButton = event.target.closest('.add-point');
             if (addPointButton) {
                 addPoint(addPointButton.closest('.chapter-card'));
@@ -509,6 +628,17 @@
                 refreshIndexes();
                 setDirtyState(true);
             }
+        });
+
+        wrapper.addEventListener('change', (event) => {
+            const documentInput = event.target.closest('.point-document');
+            if (documentInput) {
+                renderDocumentPreview(documentInput);
+            }
+        });
+
+        wrapper.querySelectorAll('.point-document').forEach((documentInput) => {
+            renderDocumentPreview(documentInput);
         });
 
         editorForm.addEventListener('input', () => {

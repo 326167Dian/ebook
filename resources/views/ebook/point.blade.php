@@ -143,6 +143,61 @@
             max-width: 100%;
         }
 
+        .point-download-box {
+            margin-top: 14px;
+            padding: 14px;
+            border-radius: 14px;
+            background: rgba(var(--ebook-primary-rgb), 0.08);
+            border: 1px solid rgba(var(--ebook-primary-rgb), 0.12);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .point-document-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .point-document-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(var(--ebook-primary-rgb), 0.1);
+        }
+
+        .point-document-item-name {
+            font-family: var(--ebook-body-font);
+            font-weight: 700;
+            color: var(--ebook-title-color);
+            line-height: 1.35;
+        }
+
+        .point-document-item-meta {
+            font-size: 12px;
+            color: #486581;
+            margin-top: 2px;
+            font-family: var(--ebook-body-font);
+        }
+
+        .point-download-title {
+            font-family: var(--ebook-title-font);
+            font-weight: 800;
+            color: var(--ebook-title-color);
+            margin-bottom: 4px;
+        }
+
+        .point-download-meta {
+            font-size: 13px;
+            color: #486581;
+            font-family: var(--ebook-body-font);
+        }
+
         .point-progress {
             display: inline-flex;
             align-items: center;
@@ -267,6 +322,20 @@
             .point-nav-link.next {
                 text-align: left;
             }
+
+            .point-download-box {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .point-document-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .point-document-item .btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -316,6 +385,39 @@
                     {!! $point['content'] !!}
                 @else
                     <p class="mb-0">Konten untuk poin ini belum diisi. Silakan login admin untuk menambahkan isi halaman.</p>
+                @endif
+
+                @php
+                    $documents = collect($point['documents'] ?? []);
+                    if ($documents->isEmpty() && !empty($point['document_path'])) {
+                        $documents = collect([[ 'path' => $point['document_path'], 'name' => $point['document_name'] ?? '' ]]);
+                    }
+                @endphp
+
+                @if ($documents->isNotEmpty())
+                    <div class="point-download-box">
+                        <div>
+                            <div class="point-download-title">Dokumen Lampiran</div>
+                            <div class="point-download-meta">
+                                {{ $documents->count() }} dokumen siap diunduh
+                            </div>
+                        </div>
+                        <div class="point-document-list w-100">
+                            @foreach ($documents as $document)
+                                @if (!empty($document['path']))
+                                    <div class="point-document-item">
+                                        <div>
+                                            <div class="point-document-item-name">{{ $document['name'] ?: basename($document['path']) }}</div>
+                                            <div class="point-document-item-meta">{{ basename($document['path']) }}</div>
+                                        </div>
+                                        <a href="{{ asset($document['path']) }}" class="btn btn-sm btn-outline-primary" download>
+                                            Download
+                                        </a>
+                                    </div>
+                                @endif
+                            @endforeach
+                        </div>
+                    </div>
                 @endif
             </div>
         </div>

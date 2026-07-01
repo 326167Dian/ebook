@@ -40,6 +40,9 @@ class EbookEditorController extends Controller
             'chapters.*.items' => ['required', 'array', 'min:1'],
             'chapters.*.items.*.title' => ['required', 'string', 'max:255'],
             'chapters.*.items.*.content' => ['nullable', 'string'],
+            'chapters.*.items.*.documents_existing' => ['nullable', 'array', 'max:5'],
+            'chapters.*.items.*.document_upload' => ['nullable', 'array', 'max:5'],
+            'chapters.*.items.*.document_upload.*' => ['file', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,zip,rar', 'max:5120'],
         ]);
 
         $chapters = EbookContent::normalizeChapters($data['chapters']);
@@ -72,6 +75,7 @@ class EbookEditorController extends Controller
         }
 
         $content = EbookContent::query()->firstOrCreate([], EbookContent::defaultData());
+        $existingChapters = EbookContent::normalizeChapters($content->chapters ?? []);
 
         $coverImagePath = $data['cover_image'] ?? $content->cover_image;
         if ($request->hasFile('cover_upload')) {
@@ -87,6 +91,96 @@ class EbookEditorController extends Controller
 
             $coverImagePath = 'coverebook/' . $fileName;
         }
+
+        foreach ($chapters as $chapterIndex => &$chapter) {
+            foreach ($chapter['items'] as $pointIndex => &$item) {
+                $storedDocuments = collect(data_get($existingChapters, $chapterIndex . '.items.' . $pointIndex . '.documents', []))
+                    ->map(function ($document) {
+                        if (!is_array($document)) {
+                            return null;
+                        }
+
+                        $path = trim((string) data_get($document, 'path', ''));
+                        if ($path === '') {
+                            return null;
+                        }
+
+                        return [
+                            'path' => $path,
+                            'name' => trim((string) data_get($document, 'name', '')) ?: basename($path),
+                        ];
+                    })
+                    ->filter()
+                    ->values()
+                    ->keyBy('path');
+
+                $submittedExistingDocuments = collect(data_get($data, 'chapters.' . $chapterIndex . '.items.' . $pointIndex . '.documents_existing', []))
+                    ->map(function ($document) {
+                        if (!is_array($document)) {
+                            return null;
+                        }
+
+                        $path = trim((string) data_get($document, 'path', ''));
+                        if ($path === '') {
+                            return null;
+                        }
+
+                        return [
+                            'path' => $path,
+                        ];
+                    })
+                    ->filter()
+                    ->values();
+
+                $existingDocuments = $submittedExistingDocuments
+                    ->map(function (array $document) use ($storedDocuments) {
+                        if (!$storedDocuments->has($document['path'])) {
+                            return null;
+                        }
+
+                        return $storedDocuments->get($document['path']);
+                    })
+                    ->filter()
+                    ->values()
+                    ->all();
+
+                $newDocuments = [];
+                $uploadFiles = $request->file('chapters.' . $chapterIndex . '.items.' . $pointIndex . '.document_upload', []);
+
+                if (!is_array($uploadFiles)) {
+                    $uploadFiles = $uploadFiles ? [$uploadFiles] : [];
+                }
+
+                if (count($existingDocuments) + count($uploadFiles) > 5) {
+                    return back()->withErrors([
+                        'chapters' => 'Setiap poin maksimal boleh memiliki 5 dokumen.',
+                    ])->withInput();
+                }
+
+                foreach ($uploadFiles as $uploadFile) {
+                    if (!$uploadFile) {
+                        continue;
+                    }
+
+                    $directory = public_path('uploads/ebook-documents');
+
+                    if (!File::exists($directory)) {
+                        File::makeDirectory($directory, 0755, true);
+                    }
+
+                    $fileName = 'doc-' . now()->format('YmdHis') . '-' . Str::random(8) . '.' . $uploadFile->getClientOriginalExtension();
+                    $uploadFile->move($directory, $fileName);
+
+                    $newDocuments[] = [
+                        'path' => 'uploads/ebook-documents/' . $fileName,
+                        'name' => $uploadFile->getClientOriginalName(),
+                    ];
+                }
+
+                $item['documents'] = array_values(array_merge($existingDocuments, $newDocuments));
+            }
+        }
+        unset($chapter, $item);
 
         $content->update([
             'badge' => $data['badge'],
