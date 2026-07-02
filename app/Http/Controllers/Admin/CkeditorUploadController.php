@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class CkeditorUploadController extends Controller
@@ -16,17 +16,12 @@ class CkeditorUploadController extends Controller
         ]);
 
         $file = $request->file('upload');
-        $directory = public_path('uploads/ebook-editor');
-
-        if (!File::exists($directory)) {
-            File::makeDirectory($directory, 0755, true);
-        }
 
         $filename = now()->format('YmdHis') . '-' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-        $file->move($directory, $filename);
+        Storage::disk('public')->putFileAs('uploads/ebook-editor', $file, $filename);
 
         return response()->json([
-            'url' => '/uploads/ebook-editor/' . $filename,
+            'url' => '/storage-public/uploads/ebook-editor/' . $filename,
         ]);
     }
 }

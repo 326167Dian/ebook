@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\EbookContent;
 use App\Models\Member;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class EbookEditorController extends Controller
@@ -90,17 +90,11 @@ class EbookEditorController extends Controller
 
         $coverImagePath = $data['cover_image'] ?? $content->cover_image;
         if ($request->hasFile('cover_upload')) {
-            $directory = public_path('coverebook');
-
-            if (!File::exists($directory)) {
-                File::makeDirectory($directory, 0755, true);
-            }
-
             $coverFile = $request->file('cover_upload');
             $fileName = 'cover-' . now()->format('YmdHis') . '-' . Str::random(6) . '.' . $coverFile->getClientOriginalExtension();
-            $coverFile->move($directory, $fileName);
+            Storage::disk('public')->putFileAs('coverebook', $coverFile, $fileName);
 
-            $coverImagePath = 'coverebook/' . $fileName;
+            $coverImagePath = 'storage-public/coverebook/' . $fileName;
         }
 
         foreach ($chapters as $chapterIndex => &$chapter) {
@@ -173,17 +167,11 @@ class EbookEditorController extends Controller
                         continue;
                     }
 
-                    $directory = public_path('uploads/ebook-documents');
-
-                    if (!File::exists($directory)) {
-                        File::makeDirectory($directory, 0755, true);
-                    }
-
                     $fileName = 'doc-' . now()->format('YmdHis') . '-' . Str::random(8) . '.' . $uploadFile->getClientOriginalExtension();
-                    $uploadFile->move($directory, $fileName);
+                    Storage::disk('public')->putFileAs('uploads/ebook-documents', $uploadFile, $fileName);
 
                     $newDocuments[] = [
-                        'path' => 'uploads/ebook-documents/' . $fileName,
+                        'path' => 'storage-public/uploads/ebook-documents/' . $fileName,
                         'name' => $uploadFile->getClientOriginalName(),
                     ];
                 }

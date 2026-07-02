@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Member;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class MemberAuthController extends Controller
@@ -57,20 +57,15 @@ class MemberAuthController extends Controller
         ]);
 
         $proofFile = $request->file('payment_proof');
-        $directory = public_path('uploads/payment-proofs');
-
-        if (!File::exists($directory)) {
-            File::makeDirectory($directory, 0755, true);
-        }
 
         $fileName = 'proof-' . now()->format('YmdHis') . '-' . Str::random(8) . '.' . $proofFile->getClientOriginalExtension();
-        $proofFile->move($directory, $fileName);
+        Storage::disk('public')->putFileAs('uploads/payment-proofs', $proofFile, $fileName);
 
         Member::query()->create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => $data['password'],
-            'payment_proof_path' => 'uploads/payment-proofs/' . $fileName,
+            'payment_proof_path' => 'storage-public/uploads/payment-proofs/' . $fileName,
             'is_active' => false,
             'paid_at' => now(),
         ]);
