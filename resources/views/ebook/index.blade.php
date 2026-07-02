@@ -246,10 +246,10 @@
         }
 
         .author-grid {
-            display: grid;
-            grid-template-columns: clamp(82px, 24vw, 96px) minmax(0, 1fr);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
             gap: 14px;
-            align-items: start;
         }
 
         .author-photo-frame {
@@ -259,6 +259,7 @@
             border: 1px solid rgba(var(--ebook-primary-rgb), 0.14);
             box-shadow: 0 12px 28px rgba(var(--ebook-primary-rgb), 0.12);
             aspect-ratio: 2 / 3;
+            width: clamp(82px, 24vw, 96px);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -287,6 +288,7 @@
 
         .author-copy {
             min-width: 0;
+            width: 100%;
             padding-top: 2px;
         }
 
@@ -333,7 +335,7 @@
 
         @media (max-width: 576px) {
             .author-photo-frame {
-                max-width: none;
+                width: clamp(82px, 30vw, 96px);
             }
 
             .author-card-body {
