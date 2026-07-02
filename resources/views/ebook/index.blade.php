@@ -455,7 +455,7 @@
         <div class="section mt-4">
             <div class="card" style="border-radius: 16px; border:1px solid rgba(var(--ebook-primary-rgb),.12); box-shadow:0 14px 24px rgba(var(--ebook-primary-rgb),.10);">
                 <div class="card-body">
-                    <h3 class="mb-2" style="color:var(--ebook-primary);">Catatan Pengantar</h3>
+                    <h3 class="mb-2" style="color:var(--ebook-primary);">Tentang Penulis</h3>
                     <p class="mb-0 text-secondary">{{ $content->intro_note }}</p>
                 </div>
             </div>

@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#1f66ba" />
-    <title>Login Member E-Book</title>
+    <title>Lupa Password Member</title>
     <link rel="stylesheet" href="{{ asset('Mobilekit/HTML/assets/css/style.css') }}">
     <style>
         body {
@@ -17,7 +17,7 @@
             padding: 20px;
         }
 
-        .login-card {
+        .forgot-card {
             width: 100%;
             max-width: 430px;
             border-radius: 18px;
@@ -26,7 +26,7 @@
             backdrop-filter: blur(5px);
         }
 
-        .login-head {
+        .forgot-head {
             background: linear-gradient(130deg, #1f66ba, #4aa4ea);
             color: #fff;
             border-radius: 18px 18px 0 0;
@@ -47,10 +47,10 @@
 </head>
 
 <body>
-    <div class="login-card">
-        <div class="login-head">
-            <h2 class="mb-1">Login Member</h2>
-            <p class="mb-0 opacity-75">Masuk untuk membaca seluruh isi e-book.</p>
+    <div class="forgot-card">
+        <div class="forgot-head">
+            <h2 class="mb-1">Lupa Password</h2>
+            <p class="mb-0 opacity-75">Masukkan email member untuk menerima link reset password.</p>
         </div>
 
         <div class="card-body p-3">
@@ -62,7 +62,7 @@
                 <div class="alert alert-danger mb-3">{{ $errors->first() }}</div>
             @endif
 
-            <form method="POST" action="{{ route('member.login.submit') }}">
+            <form method="POST" action="{{ route('member.password.email') }}">
                 @csrf
                 <div class="form-group boxed">
                     <div class="input-wrapper">
@@ -70,18 +70,10 @@
                     </div>
                 </div>
 
-                <div class="form-group boxed mt-2">
-                    <div class="input-wrapper">
-                        <input type="password" class="form-control" name="password" placeholder="Password" required>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn btn-ebook btn-block mt-3">Masuk</button>
+                <button type="submit" class="btn btn-ebook btn-block mt-3">Kirim Link Reset</button>
             </form>
 
-            <a href="{{ route('member.password.request') }}" class="btn btn-link btn-block mt-1">Lupa Password?</a>
-
-            <a href="{{ route('member.register') }}" class="btn btn-outline-primary btn-block mt-2">Daftar Member Baru</a>
+            <a href="{{ route('member.login') }}" class="btn btn-outline-primary btn-block mt-2">Kembali ke Login</a>
         </div>
     </div>
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Member;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -45,6 +46,58 @@ class MemberAuthController extends Controller
     public function showRegister()
     {
         return view('member.register');
+    }
+
+    public function showForgotPassword()
+    {
+        return view('member.forgot-password');
+    }
+
+    public function sendResetLink(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        Password::broker('members')->sendResetLink([
+            'email' => $request->input('email'),
+        ]);
+
+        return back()->with('status', 'Jika email terdaftar, link reset password telah dikirim.');
+    }
+
+    public function showResetPassword(Request $request, string $token)
+    {
+        return view('member.reset-password', [
+            'token' => $token,
+            'email' => (string) $request->query('email', ''),
+        ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => ['required', 'string'],
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $status = Password::broker('members')->reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function (Member $member, string $password) {
+                $member->forceFill([
+                    'password' => $password,
+                ])->save();
+            }
+        );
+
+        if ($status === Password::PASSWORD_RESET) {
+            return redirect()->route('member.login')->with('status', 'Password berhasil direset. Silakan login.');
+        }
+
+        return back()->withErrors([
+            'email' => 'Link reset tidak valid atau sudah kedaluwarsa.',
+        ])->withInput($request->only('email'));
     }
 
     public function register(Request $request)

@@ -2,12 +2,18 @@
 
 namespace App\Models;
 
+use App\Notifications\MemberResetPasswordNotification;
+use Illuminate\Auth\Passwords\CanResetPassword;
+use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
 
-class Member extends Model
+class Member extends Model implements CanResetPasswordContract
 {
     use HasFactory;
+    use Notifiable;
+    use CanResetPassword;
 
     protected $fillable = [
         'name',
@@ -29,5 +35,10 @@ class Member extends Model
             'is_active' => 'boolean',
             'paid_at' => 'datetime',
         ];
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new MemberResetPasswordNotification($token));
     }
 }

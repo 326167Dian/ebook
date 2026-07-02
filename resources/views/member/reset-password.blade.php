@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#1f66ba" />
-    <title>Login Member E-Book</title>
+    <title>Reset Password Member</title>
     <link rel="stylesheet" href="{{ asset('Mobilekit/HTML/assets/css/style.css') }}">
     <style>
         body {
@@ -17,7 +17,7 @@
             padding: 20px;
         }
 
-        .login-card {
+        .reset-card {
             width: 100%;
             max-width: 430px;
             border-radius: 18px;
@@ -26,7 +26,7 @@
             backdrop-filter: blur(5px);
         }
 
-        .login-head {
+        .reset-head {
             background: linear-gradient(130deg, #1f66ba, #4aa4ea);
             color: #fff;
             border-radius: 18px 18px 0 0;
@@ -47,41 +47,43 @@
 </head>
 
 <body>
-    <div class="login-card">
-        <div class="login-head">
-            <h2 class="mb-1">Login Member</h2>
-            <p class="mb-0 opacity-75">Masuk untuk membaca seluruh isi e-book.</p>
+    <div class="reset-card">
+        <div class="reset-head">
+            <h2 class="mb-1">Reset Password</h2>
+            <p class="mb-0 opacity-75">Masukkan password baru untuk akun member Anda.</p>
         </div>
 
         <div class="card-body p-3">
-            @if (session('status'))
-                <div class="alert alert-success mb-3">{{ session('status') }}</div>
-            @endif
-
             @if ($errors->any())
                 <div class="alert alert-danger mb-3">{{ $errors->first() }}</div>
             @endif
 
-            <form method="POST" action="{{ route('member.login.submit') }}">
+            <form method="POST" action="{{ route('member.password.update') }}">
                 @csrf
+                <input type="hidden" name="token" value="{{ $token }}">
+
                 <div class="form-group boxed">
                     <div class="input-wrapper">
-                        <input type="email" class="form-control" name="email" placeholder="Alamat email" value="{{ old('email') }}" required>
+                        <input type="email" class="form-control" name="email" placeholder="Alamat email" value="{{ old('email', $email) }}" required>
                     </div>
                 </div>
 
                 <div class="form-group boxed mt-2">
                     <div class="input-wrapper">
-                        <input type="password" class="form-control" name="password" placeholder="Password" required>
+                        <input type="password" class="form-control" name="password" placeholder="Password baru" required>
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-ebook btn-block mt-3">Masuk</button>
+                <div class="form-group boxed mt-2">
+                    <div class="input-wrapper">
+                        <input type="password" class="form-control" name="password_confirmation" placeholder="Konfirmasi password baru" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-ebook btn-block mt-3">Simpan Password Baru</button>
             </form>
 
-            <a href="{{ route('member.password.request') }}" class="btn btn-link btn-block mt-1">Lupa Password?</a>
-
-            <a href="{{ route('member.register') }}" class="btn btn-outline-primary btn-block mt-2">Daftar Member Baru</a>
+            <a href="{{ route('member.login') }}" class="btn btn-outline-primary btn-block mt-2">Kembali ke Login</a>
         </div>
     </div>
 

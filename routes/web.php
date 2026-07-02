@@ -16,6 +16,10 @@ Route::get('/ebook/poin/{slug}', [EbookController::class, 'point'])->name('ebook
 Route::middleware('guest')->group(function () {
     Route::get('/member/login', [MemberAuthController::class, 'showLogin'])->name('member.login');
     Route::post('/member/login', [MemberAuthController::class, 'login'])->name('member.login.submit');
+    Route::get('/member/forgot-password', [MemberAuthController::class, 'showForgotPassword'])->name('member.password.request');
+    Route::post('/member/forgot-password', [MemberAuthController::class, 'sendResetLink'])->name('member.password.email');
+    Route::get('/member/reset-password/{token}', [MemberAuthController::class, 'showResetPassword'])->name('member.password.reset');
+    Route::post('/member/reset-password', [MemberAuthController::class, 'resetPassword'])->name('member.password.update');
     Route::get('/member/register', [MemberAuthController::class, 'showRegister'])->name('member.register');
     Route::post('/member/register', [MemberAuthController::class, 'register'])->name('member.register.submit');
 });
