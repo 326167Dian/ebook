@@ -662,7 +662,7 @@
                         <div class="author-copy">
                             <div class="author-eyebrow">Profil Penulis</div>
                             <h3 class="author-title">Tentang Penulis</h3>
-                            <div class="author-name">{{ $authorName }}</div>
+                            
                             <p class="author-lead"></p>
                             <div class="rich-content">{!! $content->intro_note !!}</div>
                         </div>
