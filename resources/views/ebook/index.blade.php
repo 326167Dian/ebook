@@ -175,10 +175,38 @@
         .rich-content {
             line-height: 1.8;
             font-family: var(--ebook-body-font);
+            color: #5b7083;
         }
 
         .rich-content > :last-child {
             margin-bottom: 0;
+        }
+
+        .rich-content p {
+            margin: 0 0 0.95em;
+            text-align: justify;
+            text-indent: 1.6em;
+        }
+
+        .rich-content p:first-child {
+            margin-top: 0;
+        }
+
+        .rich-content ul,
+        .rich-content ol {
+            margin: 0 0 1em;
+            padding-left: 1.4em;
+        }
+
+        .rich-content li {
+            text-align: justify;
+            margin-bottom: 0.35em;
+        }
+
+        .rich-content strong,
+        .rich-content b {
+            color: #173453;
+            font-weight: 800;
         }
 
         .author-card {
@@ -219,18 +247,18 @@
 
         .author-grid {
             display: grid;
-            grid-template-columns: minmax(0, 180px) minmax(0, 1fr);
-            gap: 18px;
+            grid-template-columns: clamp(82px, 24vw, 96px) minmax(0, 1fr);
+            gap: 14px;
             align-items: start;
         }
 
         .author-photo-frame {
-            border-radius: 20px;
+            border-radius: 12px;
             overflow: hidden;
             background: linear-gradient(145deg, rgba(var(--ebook-primary-rgb), 0.12), rgba(var(--ebook-primary-rgb), 0.03));
             border: 1px solid rgba(var(--ebook-primary-rgb), 0.14);
             box-shadow: 0 12px 28px rgba(var(--ebook-primary-rgb), 0.12);
-            aspect-ratio: 4 / 5;
+            aspect-ratio: 2 / 3;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -259,6 +287,7 @@
 
         .author-copy {
             min-width: 0;
+            padding-top: 2px;
         }
 
         .author-eyebrow {
@@ -285,31 +314,34 @@
         }
 
         .author-title {
-            margin: 14px 0 6px;
+            margin: 10px 0 4px;
             color: var(--ebook-primary);
+            line-height: 1.15;
         }
 
         .author-name {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             font-family: var(--ebook-title-font);
-            font-size: 1rem;
+            font-size: 0.98rem;
             font-weight: 700;
             color: #35516d;
         }
 
         .author-lead {
-            margin-bottom: 16px;
-            max-width: 620px;
-            color: #5b7083;
+            display: none;
         }
 
         @media (max-width: 576px) {
-            .author-grid {
-                grid-template-columns: 1fr;
+            .author-photo-frame {
+                max-width: none;
             }
 
-            .author-photo-frame {
-                max-width: 220px;
+            .author-card-body {
+                padding: 22px 16px 18px;
+            }
+
+            .rich-content p {
+                text-indent: 1.3em;
             }
         }
 
@@ -630,7 +662,7 @@
                             <h3 class="author-title">Tentang Penulis</h3>
                             <div class="author-name">{{ $authorName }}</div>
                             <p class="author-lead"></p>
-                            <div class="rich-content text-secondary">{!! $content->intro_note !!}</div>
+                            <div class="rich-content">{!! $content->intro_note !!}</div>
                         </div>
                     </div>
                 </div>
