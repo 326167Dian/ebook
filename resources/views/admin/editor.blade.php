@@ -58,6 +58,22 @@
             min-height: 160px;
         }
 
+        .rich-text-shell {
+            padding: 14px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(31, 102, 186, 0.05), rgba(78, 163, 230, 0.02));
+            border: 1px solid rgba(31, 102, 186, 0.12);
+        }
+
+        .rich-text-shell .form-text {
+            margin-bottom: 10px;
+            color: #5b7083;
+        }
+
+        .rich-text-shell .ck-editor__editable {
+            min-height: 220px;
+        }
+
         .btn-ebook {
             background: var(--editor-primary);
             border: 0;
@@ -247,9 +263,36 @@
                     </div>
 
                     <div class="form-group mt-3">
-                        <label class="form-label">Catatan Pengantar</label>
-                        <textarea class="form-control" rows="4" name="intro_note">{{ old('intro_note', $content->intro_note) }}</textarea>
+                        <label class="form-label">Nama Penulis</label>
+                        <input type="text" class="form-control" name="author_name" placeholder="contoh: Ahmad Yasin" value="{{ old('author_name', $content->author_name) }}">
+                        <small class="text-muted d-block mt-1">Dipakai untuk menampilkan nama penulis dan membuat inisial placeholder otomatis jika foto belum diisi.</small>
                     </div>
+
+                    <div class="form-group mt-3">
+                        <label class="form-label">Tentang Penulis</label>
+                        <div class="rich-text-shell">
+                            <div class="form-text">Gunakan paragraf, subjudul, daftar poin, tabel, atau gambar untuk menulis profil penulis dengan format yang lebih rapi.</div>
+                            <textarea class="form-control rich-text-editor" rows="4" name="intro_note">{{ old('intro_note', $content->intro_note) }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <label class="form-label">Path Foto Penulis (relatif dari public)</label>
+                        <input type="text" class="form-control" name="author_photo" placeholder="contoh: storage-public/authors/nama-file.png" value="{{ old('author_photo', $content->author_photo) }}">
+                        <small class="text-muted d-block mt-1">Opsional. Bisa isi path manual atau upload foto baru.</small>
+                    </div>
+
+                    <div class="form-group mt-2">
+                        <label class="form-label">Upload Foto Penulis</label>
+                        <input type="file" class="form-control" name="author_photo_upload" accept="image/png,image/jpeg,image/webp">
+                        <small class="text-muted d-block mt-1">Format: JPG, PNG, WEBP. Maksimal 5MB.</small>
+                    </div>
+
+                    @if (!empty($content->author_photo))
+                        <div class="mt-2">
+                            <img src="{{ asset($content->author_photo) }}" alt="Preview Foto Penulis" style="width: 100%; max-width: 180px; height: auto; border-radius: 16px; border:1px solid rgba(31,102,186,.2); object-fit: cover;">
+                        </div>
+                    @endif
 
                     <div class="form-group mt-3">
                         <label class="form-label">Path Cover (relatif dari public)</label>
@@ -518,17 +561,33 @@
                 return;
             }
 
+            const isRichTextEditor = textarea.classList.contains('rich-text-editor');
+            const editorConfig = {
+                extraPlugins: [editorPlugin],
+                toolbar: isRichTextEditor ? [
+                    'heading', '|',
+                    'bold', 'italic', 'link', '|',
+                    'bulletedList', 'numberedList', 'outdent', 'indent', '|',
+                    'blockQuote', 'insertTable', 'mediaEmbed', 'imageUpload', '|',
+                    'undo', 'redo'
+                ] : [
+                    'heading', '|',
+                    'imageUpload',
+                    'bold', 'italic', 'link', '|',
+                    'bulletedList', 'numberedList', '|',
+                    'blockQuote', 'undo', 'redo'
+                ]
+            };
+
+            if (isRichTextEditor) {
+                editorConfig.placeholder = 'Tuliskan profil penulis, latar belakang, pengalaman, atau pesan singkat untuk pembaca...';
+                editorConfig.table = {
+                    contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
+                };
+            }
+
             ClassicEditor
-                .create(textarea, {
-                    extraPlugins: [editorPlugin],
-                    toolbar: [
-                        'heading', '|',
-                        'imageUpload',
-                        'bold', 'italic', 'link', '|',
-                        'bulletedList', 'numberedList', '|',
-                        'blockQuote', 'undo', 'redo'
-                    ]
-                })
+                .create(textarea, editorConfig)
                 .then((editor) => {
                     textarea.dataset.ckeditorInitialized = '1';
                     editorInstances.set(textarea, editor);
@@ -542,7 +601,7 @@
         }
 
         function initEditorsIn(container) {
-            container.querySelectorAll('.point-content').forEach((textarea) => {
+            container.querySelectorAll('.point-content, .rich-text-editor').forEach((textarea) => {
                 initEditorForTextarea(textarea);
             });
         }

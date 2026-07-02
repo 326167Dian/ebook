@@ -9,6 +9,15 @@
             return preg_match('/^#[0-9A-Fa-f]{6}$/', (string) $value) ? $value : $fallback;
         };
 
+        $authorName = trim((string) ($content->author_name ?? ''));
+        $authorName = $authorName !== '' ? $authorName : 'Admin Penulis';
+
+        $authorInitials = collect(preg_split('/\s+/', $authorName, -1, PREG_SPLIT_NO_EMPTY))
+            ->take(2)
+            ->map(fn ($part) => function_exists('mb_substr') ? mb_substr($part, 0, 1) : substr($part, 0, 1))
+            ->implode('');
+        $authorInitials = strtoupper($authorInitials !== '' ? $authorInitials : 'AP');
+
         $toRgb = function ($hex) {
             $hex = ltrim($hex, '#');
 
@@ -161,6 +170,159 @@
 
         .toc-card + .toc-card {
             margin-top: 12px;
+        }
+
+        .rich-content {
+            line-height: 1.8;
+            font-family: var(--ebook-body-font);
+        }
+
+        .rich-content > :last-child {
+            margin-bottom: 0;
+        }
+
+        .author-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 22px;
+            border: 1px solid rgba(var(--ebook-primary-rgb), 0.14);
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(244, 250, 255, 0.95));
+            box-shadow: 0 18px 34px rgba(var(--ebook-primary-rgb), 0.12);
+        }
+
+        .author-card::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto auto 0;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, var(--ebook-primary), var(--ebook-secondary), var(--ebook-accent));
+        }
+
+        .author-card::after {
+            content: "";
+            position: absolute;
+            right: -60px;
+            top: -40px;
+            width: 180px;
+            height: 180px;
+            border-radius: 999px;
+            background: radial-gradient(circle, rgba(var(--ebook-primary-rgb), 0.13) 0, rgba(var(--ebook-primary-rgb), 0) 70%);
+            pointer-events: none;
+        }
+
+        .author-card-body {
+            position: relative;
+            z-index: 1;
+            padding: 24px 20px 20px;
+        }
+
+        .author-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 180px) minmax(0, 1fr);
+            gap: 18px;
+            align-items: start;
+        }
+
+        .author-photo-frame {
+            border-radius: 20px;
+            overflow: hidden;
+            background: linear-gradient(145deg, rgba(var(--ebook-primary-rgb), 0.12), rgba(var(--ebook-primary-rgb), 0.03));
+            border: 1px solid rgba(var(--ebook-primary-rgb), 0.14);
+            box-shadow: 0 12px 28px rgba(var(--ebook-primary-rgb), 0.12);
+            aspect-ratio: 4 / 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .author-photo-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .author-photo-placeholder {
+            width: 72px;
+            height: 72px;
+            border-radius: 999px;
+            background: rgba(var(--ebook-primary-rgb), 0.10);
+            color: var(--ebook-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            font-weight: 800;
+            font-family: var(--ebook-title-font);
+        }
+
+        .author-copy {
+            min-width: 0;
+        }
+
+        .author-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 999px;
+            padding: 6px 12px;
+            background: rgba(var(--ebook-primary-rgb), 0.08);
+            color: var(--ebook-primary);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .author-eyebrow::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--ebook-secondary);
+            box-shadow: 0 0 0 5px rgba(var(--ebook-primary-rgb), 0.08);
+        }
+
+        .author-title {
+            margin: 14px 0 6px;
+            color: var(--ebook-primary);
+        }
+
+        .author-name {
+            margin-bottom: 10px;
+            font-family: var(--ebook-title-font);
+            font-size: 1rem;
+            font-weight: 700;
+            color: #35516d;
+        }
+
+        .author-lead {
+            margin-bottom: 16px;
+            max-width: 620px;
+            color: #5b7083;
+        }
+
+        @media (max-width: 576px) {
+            .author-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .author-photo-frame {
+                max-width: 220px;
+            }
+        }
+
+        .rich-content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .rich-content figure.image {
+            margin-left: 0;
+            margin-right: 0;
+            max-width: 100%;
         }
 
         .toc-head {
@@ -453,10 +615,24 @@
         </div>
 
         <div class="section mt-4">
-            <div class="card" style="border-radius: 16px; border:1px solid rgba(var(--ebook-primary-rgb),.12); box-shadow:0 14px 24px rgba(var(--ebook-primary-rgb),.10);">
-                <div class="card-body">
-                    <h3 class="mb-2" style="color:var(--ebook-primary);">Tentang Penulis</h3>
-                    <p class="mb-0 text-secondary">{{ $content->intro_note }}</p>
+            <div class="author-card">
+                <div class="author-card-body">
+                    <div class="author-grid">
+                        <div class="author-photo-frame">
+                            @if (!empty($content->author_photo))
+                                <img src="{{ asset($content->author_photo) }}" alt="Foto Penulis">
+                            @else
+                                <div class="author-photo-placeholder">{{ $authorInitials }}</div>
+                            @endif
+                        </div>
+                        <div class="author-copy">
+                            <div class="author-eyebrow">Profil Penulis</div>
+                            <h3 class="author-title">Tentang Penulis</h3>
+                            <div class="author-name">{{ $authorName }}</div>
+                            <p class="author-lead">Bagian ini dapat berisi latar belakang, pengalaman, visi, atau pengantar pribadi dari penulis untuk pembaca.</p>
+                            <div class="rich-content text-secondary">{!! $content->intro_note !!}</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

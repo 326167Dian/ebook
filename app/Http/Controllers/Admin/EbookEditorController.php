@@ -38,6 +38,9 @@ class EbookEditorController extends Controller
             'hero_title' => ['required', 'string', 'max:255'],
             'hero_description' => ['required', 'string'],
             'intro_note' => ['nullable', 'string'],
+            'author_name' => ['nullable', 'string', 'max:120'],
+            'author_photo' => ['nullable', 'string', 'max:255'],
+            'author_photo_upload' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'cover_image' => ['nullable', 'string', 'max:255'],
             'cover_upload' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'theme_primary' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
@@ -87,6 +90,15 @@ class EbookEditorController extends Controller
 
         $content = EbookContent::query()->firstOrCreate([], EbookContent::defaultData());
         $existingChapters = EbookContent::normalizeChapters($content->chapters ?? []);
+        $authorPhotoPath = $data['author_photo'] ?? $content->author_photo;
+
+        if ($request->hasFile('author_photo_upload')) {
+            $authorPhotoFile = $request->file('author_photo_upload');
+            $fileName = 'author-' . now()->format('YmdHis') . '-' . Str::random(6) . '.' . $authorPhotoFile->getClientOriginalExtension();
+            Storage::disk('public')->putFileAs('authors', $authorPhotoFile, $fileName);
+
+            $authorPhotoPath = 'storage-public/authors/' . $fileName;
+        }
 
         $coverImagePath = $data['cover_image'] ?? $content->cover_image;
         if ($request->hasFile('cover_upload')) {
@@ -186,6 +198,8 @@ class EbookEditorController extends Controller
             'hero_title' => $data['hero_title'],
             'hero_description' => $data['hero_description'],
             'intro_note' => $data['intro_note'] ?? '',
+            'author_name' => trim((string) ($data['author_name'] ?? '')),
+            'author_photo' => $authorPhotoPath,
             'cover_image' => $coverImagePath,
             'theme_primary' => $data['theme_primary'],
             'theme_secondary' => $data['theme_secondary'],
