@@ -501,7 +501,37 @@
         const sectionSaveActions = document.querySelectorAll('.section-save-actions');
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         const uploadUrl = "{{ route('admin.ckeditor.upload') }}";
+        const SCROLL_Y_KEY = 'adminEditorScrollY';
+        const RESTORE_SCROLL_FLAG_KEY = 'adminEditorRestoreScroll';
         let hasChanges = false;
+
+        function saveScrollPositionForReload() {
+            sessionStorage.setItem(SCROLL_Y_KEY, String(window.scrollY || window.pageYOffset || 0));
+            sessionStorage.setItem(RESTORE_SCROLL_FLAG_KEY, '1');
+        }
+
+        function restoreScrollPositionAfterReload() {
+            if (sessionStorage.getItem(RESTORE_SCROLL_FLAG_KEY) !== '1') {
+                return;
+            }
+
+            const savedY = Number.parseInt(sessionStorage.getItem(SCROLL_Y_KEY) || '', 10);
+            sessionStorage.removeItem(RESTORE_SCROLL_FLAG_KEY);
+            sessionStorage.removeItem(SCROLL_Y_KEY);
+
+            if (Number.isNaN(savedY)) {
+                return;
+            }
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    window.scrollTo({
+                        top: savedY,
+                        behavior: 'auto',
+                    });
+                });
+            });
+        }
 
         function setDirtyState(isDirty) {
             hasChanges = isDirty;
@@ -797,8 +827,11 @@
         }
 
         initEditorsIn(editorForm);
+        restoreScrollPositionAfterReload();
 
         editorForm.addEventListener('submit', () => {
+            saveScrollPositionForReload();
+
             editorInstances.forEach((editor) => {
                 editor.updateSourceElement();
             });
