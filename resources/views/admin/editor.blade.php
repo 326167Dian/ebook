@@ -567,8 +567,8 @@
                 toolbar: isRichTextEditor ? [
                     'heading', '|',
                     'bold', 'italic', 'link', '|',
-                    'bulletedList', 'numberedList', 'outdent', 'indent', '|',
-                    'blockQuote', 'insertTable', 'mediaEmbed', 'imageUpload', '|',
+                    'bulletedList', 'numberedList', '|',
+                    'blockQuote', 'imageUpload', '|',
                     'undo', 'redo'
                 ] : [
                     'heading', '|',
@@ -581,9 +581,6 @@
 
             if (isRichTextEditor) {
                 editorConfig.placeholder = 'Tuliskan profil penulis, latar belakang, pengalaman, atau pesan singkat untuk pembaca...';
-                editorConfig.table = {
-                    contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
-                };
             }
 
             ClassicEditor
@@ -799,7 +796,7 @@
             addChapter();
         }
 
-        initEditorsIn(wrapper);
+        initEditorsIn(editorForm);
 
         editorForm.addEventListener('submit', () => {
             editorInstances.forEach((editor) => {
