@@ -18,6 +18,8 @@ class Member extends Model implements CanResetPasswordContract
     protected $fillable = [
         'name',
         'email',
+        'google_id',
+        'avatar',
         'password',
         'payment_proof_path',
         'is_active',

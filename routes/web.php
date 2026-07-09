@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\CkeditorUploadController;
 use App\Http\Controllers\Admin\EbookEditorController;
 use App\Http\Controllers\Admin\MemberModerationController;
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\EbookController;
 use App\Http\Controllers\MemberAuthController;
 use App\Http\Controllers\StoragePublicFileController;
@@ -14,6 +15,12 @@ Route::get('/ebook', [EbookController::class, 'index'])->name('ebook.alias');
 Route::get('/ebook/poin/{slug}', [EbookController::class, 'point'])->name('ebook.point');
 
 Route::middleware('guest')->group(function () {
+    Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
+    Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+
+    Route::get('/member/auth/google/redirect', [MemberAuthController::class, 'redirectToGoogle'])->name('member.google.redirect');
+    Route::get('/member/auth/google/callback', [MemberAuthController::class, 'handleGoogleCallback'])->name('member.google.callback');
+
     Route::get('/member/login', [MemberAuthController::class, 'showLogin'])->name('member.login');
     Route::post('/member/login', [MemberAuthController::class, 'login'])->name('member.login.submit');
     Route::get('/member/forgot-password', [MemberAuthController::class, 'showForgotPassword'])->name('member.password.request');
@@ -25,6 +32,8 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::post('/member/logout', [MemberAuthController::class, 'logout'])->name('member.logout');
+Route::get('/member/payment', [MemberAuthController::class, 'showPayment'])->name('member.payment');
+Route::post('/member/payment', [MemberAuthController::class, 'submitPayment'])->name('member.payment.submit');
 
 Route::get('/storage-public/{path}', [StoragePublicFileController::class, 'show'])
     ->where('path', '.*')
@@ -39,6 +48,7 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', fn () => redirect()->route('admin.editor'))->name('dashboard');
     Route::get('/admin', [EbookEditorController::class, 'edit'])->name('admin.editor');
     Route::post('/admin', [EbookEditorController::class, 'update'])->name('admin.editor.update');
     Route::post('/admin/members/{member}/approve', [MemberModerationController::class, 'approve'])->name('admin.members.approve');

@@ -17,15 +17,16 @@ class EnsureMemberAccess
             return redirect()->guest(route('member.login'));
         }
 
-        $member = Member::query()
-            ->whereKey($memberId)
-            ->where('is_active', true)
-            ->first();
+        $member = Member::query()->find($memberId);
 
         if (!$member) {
             $request->session()->forget('member_id');
 
             return redirect()->guest(route('member.login'));
+        }
+
+        if (! $member->is_active) {
+            return redirect()->route('member.payment');
         }
 
         $request->attributes->set('member', $member);

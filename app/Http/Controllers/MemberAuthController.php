@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use RuntimeException;
+use Throwable;
 
 class MemberAuthController extends Controller
 {
@@ -18,29 +20,132 @@ class MemberAuthController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required', 'string'],
-        ]);
+        return redirect()
+            ->route('member.login')
+            ->withErrors([
+                'email' => 'Login member hanya tersedia dengan Google. Silakan klik tombol Login dengan Google.',
+            ]);
+    }
 
-        $member = Member::query()->where('email', $credentials['email'])->first();
+    public function redirectToGoogle()
+    {
+        try {
+            return $this->googleDriver()->redirect();
+        } catch (Throwable $exception) {
+            report($exception);
 
-        if (!$member || !Hash::check($credentials['password'], $member->password)) {
-            return back()->withErrors([
-                'email' => 'Email atau password tidak sesuai.',
-            ])->onlyInput('email');
+            return redirect()
+                ->route('member.login')
+                ->withErrors([
+                    'email' => $exception->getMessage(),
+                ]);
+        }
+    }
+
+    public function handleGoogleCallback(Request $request)
+    {
+        try {
+            $googleUser = $this->googleDriver()->user();
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return redirect()
+                ->route('member.login')
+                ->withErrors([
+                    'email' => $exception->getMessage() ?: 'Login Google gagal diproses. Silakan coba lagi.',
+                ]);
         }
 
-        if (!$member->is_active) {
-            return back()->withErrors([
-                'email' => 'Akun Anda masih menunggu verifikasi pembayaran oleh admin.',
-            ])->onlyInput('email');
+        $email = $googleUser->getEmail();
+
+        if (! $email) {
+            return redirect()
+                ->route('member.login')
+                ->withErrors([
+                    'email' => 'Akun Google Anda tidak memiliki email yang dapat digunakan.',
+                ]);
+        }
+
+        $member = Member::query()
+            ->where('google_id', $googleUser->getId())
+            ->orWhere('email', $email)
+            ->first();
+
+        $payload = [
+            'name' => $googleUser->getName() ?: Str::before($email, '@'),
+            'email' => $email,
+            'google_id' => $googleUser->getId(),
+            'avatar' => $googleUser->getAvatar(),
+        ];
+
+        if (! $member) {
+            $payload['password'] = Hash::make(Str::random(40));
+            $payload['payment_proof_path'] = '';
+            $payload['is_active'] = false;
+            $payload['paid_at'] = null;
+            $member = Member::query()->create($payload);
+        } else {
+            $member->fill($payload)->save();
         }
 
         $request->session()->put('member_id', $member->id);
         $request->session()->regenerate();
 
+        if (! $member->is_active) {
+            return redirect()
+                ->route('member.payment')
+                ->with('status', 'Login Google berhasil. Lanjutkan dengan upload bukti pembayaran agar akun bisa diaktifkan admin.');
+        }
+
         return redirect()->intended(route('ebook.home'));
+    }
+
+    public function showPayment(Request $request)
+    {
+        $member = $this->resolveSessionMember($request);
+
+        if (! $member) {
+            return redirect()->route('member.login');
+        }
+
+        if ($member->is_active) {
+            return redirect()->route('ebook.home');
+        }
+
+        return view('member.payment', [
+            'member' => $member,
+        ]);
+    }
+
+    public function submitPayment(Request $request)
+    {
+        $member = $this->resolveSessionMember($request);
+
+        if (! $member) {
+            return redirect()->route('member.login');
+        }
+
+        if ($member->is_active) {
+            return redirect()->route('ebook.home');
+        }
+
+        $data = $request->validate([
+            'payment_proof' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+        ]);
+
+        $proofFile = $data['payment_proof'];
+        $fileName = 'proof-' . now()->format('YmdHis') . '-' . Str::random(8) . '.' . $proofFile->getClientOriginalExtension();
+        Storage::disk('public')->putFileAs('uploads/payment-proofs', $proofFile, $fileName);
+
+        $member->forceFill([
+            'payment_proof_path' => 'storage-public/uploads/payment-proofs/' . $fileName,
+            'is_active' => false,
+            'paid_at' => null,
+        ])->save();
+
+        return redirect()
+            ->route('member.payment')
+            ->with('status', 'Bukti pembayaran berhasil dikirim. Tunggu verifikasi admin untuk akses penuh e-book.');
     }
 
     public function showRegister()
@@ -120,7 +225,7 @@ class MemberAuthController extends Controller
             'password' => $data['password'],
             'payment_proof_path' => 'storage-public/uploads/payment-proofs/' . $fileName,
             'is_active' => false,
-            'paid_at' => now(),
+            'paid_at' => null,
         ]);
 
         return redirect()->route('member.login')->with('status', 'Registrasi berhasil. Akun Anda akan aktif setelah bukti transfer diverifikasi admin.');
@@ -133,5 +238,33 @@ class MemberAuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('member.login');
+    }
+
+    private function googleDriver()
+    {
+        $socialiteClass = 'Laravel\\Socialite\\Facades\\Socialite';
+
+        if (! class_exists($socialiteClass)) {
+            throw new RuntimeException('Google Login belum aktif: paket laravel/socialite belum terpasang di server.');
+        }
+
+        if (! config('services.google.client_id') || ! config('services.google.client_secret')) {
+            throw new RuntimeException('Google Login belum aktif: GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET belum diatur di .env.');
+        }
+
+        return $socialiteClass::driver('google')
+            ->redirectUrl(route('member.google.callback'))
+            ->scopes(['openid', 'profile', 'email']);
+    }
+
+    private function resolveSessionMember(Request $request): ?Member
+    {
+        $memberId = (int) $request->session()->get('member_id', 0);
+
+        if ($memberId <= 0) {
+            return null;
+        }
+
+        return Member::query()->find($memberId);
     }
 }
