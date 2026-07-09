@@ -73,7 +73,7 @@
             <div class="status-note mb-3">
                 <div><strong>Member:</strong> {{ $member->name }}</div>
                 <div><strong>Email:</strong> {{ $member->email }}</div>
-                <div class="mt-2">Upload bukti transfer sebesar <strong>Rp. 99.000</strong>. Admin akan verifikasi sebelum akses penuh dibuka.</div>
+                <div class="mt-2">Upload bukti transfer sebesar <del>Rp. 250.000</del> <strong>Rp. 99.000</strong>. Admin akan verifikasi sebelum akses penuh dibuka.</div>
             </div>
 
             @if (!empty($member->payment_proof_path))
