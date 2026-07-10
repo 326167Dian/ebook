@@ -44,49 +44,6 @@
             color: #fff;
         }
 
-        .login-divider {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: #5a6b85;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin: 14px 0;
-        }
-
-        .login-divider::before,
-        .login-divider::after {
-            content: "";
-            height: 1px;
-            flex: 1;
-            background: rgba(17, 45, 38, 0.18);
-        }
-
-        .btn-google {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            border: 1px solid #c6d3e3;
-            color: #1d3557;
-            background: #fff;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
-
-        .btn-google:hover {
-            color: #123157;
-            border-color: #9bb5d2;
-            box-shadow: 0 8px 20px rgba(31, 102, 186, 0.15);
-            transform: translateY(-1px);
-        }
-
-        .google-mark {
-            width: 20px;
-            height: 20px;
-            display: inline-block;
-        }
     </style>
 </head>
 
@@ -131,18 +88,6 @@
 
                 <button type="submit" class="btn btn-ebook btn-block">Masuk</button>
             </form>
-
-            <div class="login-divider">atau</div>
-
-            <a href="{{ route('auth.google.redirect') }}" class="btn btn-google btn-block">
-                <svg class="google-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path fill="#EA4335" d="M12 10.2v3.92h5.44c-.24 1.26-.96 2.32-2.04 3.03l3.3 2.57c1.92-1.77 3.03-4.38 3.03-7.48 0-.71-.06-1.39-.2-2.04H12z" />
-                    <path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.62-2.45l-3.3-2.57c-.9.6-2.04.96-3.32.96-2.55 0-4.72-1.71-5.5-4.02l-3.4 2.62C4.74 19.8 8.12 22 12 22z" />
-                    <path fill="#4A90E2" d="M6.5 13.92c-.2-.6-.32-1.23-.32-1.92s.12-1.32.32-1.92L3.1 7.46C2.38 8.9 2 10.4 2 12s.38 3.1 1.1 4.54l3.4-2.62z" />
-                    <path fill="#FBBC05" d="M12 6.06c1.47 0 2.78.5 3.8 1.47l2.85-2.86C16.95 3.08 14.7 2 12 2 8.12 2 4.74 4.2 3.1 7.46l3.4 2.62c.78-2.31 2.95-4.02 5.5-4.02z" />
-                </svg>
-                Login dengan Google
-            </a>
 
             @if ($canSetup)
                 <a href="{{ route('admin.setup') }}" class="btn btn-outline-secondary btn-block mt-2">Buat Admin Pertama</a>

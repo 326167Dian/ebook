@@ -4,7 +4,6 @@ use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\CkeditorUploadController;
 use App\Http\Controllers\Admin\EbookEditorController;
 use App\Http\Controllers\Admin\MemberModerationController;
-use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\EbookController;
 use App\Http\Controllers\MemberAuthController;
 use App\Http\Controllers\StoragePublicFileController;
@@ -15,9 +14,6 @@ Route::get('/ebook', [EbookController::class, 'index'])->name('ebook.alias');
 Route::get('/ebook/poin/{slug}', [EbookController::class, 'point'])->name('ebook.point');
 
 Route::middleware('guest')->group(function () {
-    Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
-    Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
-
     Route::get('/member/auth/google/redirect', [MemberAuthController::class, 'redirectToGoogle'])->name('member.google.redirect');
     Route::get('/member/auth/google/callback', [MemberAuthController::class, 'handleGoogleCallback'])->name('member.google.callback');
 
@@ -40,8 +36,8 @@ Route::get('/storage-public/{path}', [StoragePublicFileController::class, 'show'
     ->name('storage.public.show');
 
 Route::middleware('guest')->group(function () {
-    Route::get('/admin/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');
-    Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('admin.login.submit');
+    Route::get('/yusuf/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');
+    Route::post('/yusuf/login', [AdminAuthController::class, 'login'])->name('admin.login.submit');
 
     Route::get('/admin/setup', [AdminAuthController::class, 'showSetup'])->name('admin.setup');
     Route::post('/admin/setup', [AdminAuthController::class, 'storeSetup'])->name('admin.setup.store');
