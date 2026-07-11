@@ -54,6 +54,7 @@ class EbookEditorController extends Controller
             'chapters.*.items' => ['required', 'array', 'min:1'],
             'chapters.*.items.*.title' => ['required', 'string', 'max:255'],
             'chapters.*.items.*.content' => ['nullable', 'string'],
+            'chapters.*.items.*.youtube_url' => ['nullable', 'url', 'max:255'],
             'chapters.*.items.*.documents_existing' => ['nullable', 'array', 'max:5'],
             'chapters.*.items.*.document_upload' => ['nullable', 'array', 'max:5'],
             'chapters.*.items.*.document_upload.*' => ['file', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,zip,rar', 'max:5120'],
@@ -77,6 +78,7 @@ class EbookEditorController extends Controller
                 }
 
                 $item['slug'] = $slug;
+                $item['youtube_url'] = trim((string) ($item['youtube_url'] ?? ''));
                 $usedSlugs[] = $slug;
             }
         }

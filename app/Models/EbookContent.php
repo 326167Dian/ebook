@@ -58,12 +58,14 @@ class EbookContent extends Model
                             'title' => 'Mengapa bisnis apotek menarik',
                             'slug' => 'mengapa-bisnis-apotek-menarik',
                             'content' => 'Pembahasan mengenai peluang pasar, kebutuhan berulang, dan stabilitas bisnis apotek.',
+                            'youtube_url' => '',
                             'documents' => [],
                         ],
                         [
                             'title' => 'Kesalahan yang sering dilakukan pemilik baru',
                             'slug' => 'kesalahan-yang-sering-dilakukan-pemilik-baru',
                             'content' => 'Ringkasan kesalahan umum saat memulai apotek serta langkah antisipasinya.',
+                            'youtube_url' => '',
                             'documents' => [],
                         ],
                     ],
@@ -71,72 +73,72 @@ class EbookContent extends Model
                 [
                     'title' => 'Membuka Apotek',
                     'items' => [
-                        ['title' => 'Legalitas', 'slug' => 'legalitas', 'content' => 'Panduan dokumen legal dan perizinan membuka apotek.', 'documents' => []],
-                        ['title' => 'Modal', 'slug' => 'modal', 'content' => 'Cara menghitung kebutuhan modal awal secara realistis.', 'documents' => []],
-                        ['title' => 'Pemilihan lokasi', 'slug' => 'pemilihan-lokasi', 'content' => 'Kriteria lokasi yang berdampak pada traffic dan omzet.', 'documents' => []],
-                        ['title' => 'Perencanaan stok', 'slug' => 'perencanaan-stok', 'content' => 'Strategi pembelian stok awal yang efisien dan aman.', 'documents' => []],
+                        ['title' => 'Legalitas', 'slug' => 'legalitas', 'content' => 'Panduan dokumen legal dan perizinan membuka apotek.', 'youtube_url' => '', 'documents' => []],
+                        ['title' => 'Modal', 'slug' => 'modal', 'content' => 'Cara menghitung kebutuhan modal awal secara realistis.', 'youtube_url' => '', 'documents' => []],
+                        ['title' => 'Pemilihan lokasi', 'slug' => 'pemilihan-lokasi', 'content' => 'Kriteria lokasi yang berdampak pada traffic dan omzet.', 'youtube_url' => '', 'documents' => []],
+                        ['title' => 'Perencanaan stok', 'slug' => 'perencanaan-stok', 'content' => 'Strategi pembelian stok awal yang efisien dan aman.', 'youtube_url' => '', 'documents' => []],
                     ],
                 ],
                 [
                     'title' => 'Operasional Harian',
                     'items' => [
-                        ['title' => 'SOP lengkap', 'slug' => 'sop-lengkap', 'content' => 'Standar operasional untuk kegiatan harian apotek.', 'documents' => []],
-                        ['title' => 'Pelayanan pasien', 'slug' => 'pelayanan-pasien', 'content' => 'Teknik pelayanan agar pasien puas dan kembali lagi.', 'documents' => []],
-                        ['title' => 'Pengelolaan resep', 'slug' => 'pengelolaan-resep', 'content' => 'Alur aman dan rapi dalam menerima serta menyiapkan resep.', 'documents' => []],
-                        ['title' => 'Manajemen stok', 'slug' => 'manajemen-stok', 'content' => 'Sistem kontrol stok agar tidak sering kosong atau overstock.', 'documents' => []],
+                        ['title' => 'SOP lengkap', 'slug' => 'sop-lengkap', 'content' => 'Standar operasional untuk kegiatan harian apotek.', 'youtube_url' => '', 'documents' => []],
+                        ['title' => 'Pelayanan pasien', 'slug' => 'pelayanan-pasien', 'content' => 'Teknik pelayanan agar pasien puas dan kembali lagi.', 'youtube_url' => '', 'documents' => []],
+                        ['title' => 'Pengelolaan resep', 'slug' => 'pengelolaan-resep', 'content' => 'Alur aman dan rapi dalam menerima serta menyiapkan resep.', 'youtube_url' => '', 'documents' => []],
+                        ['title' => 'Manajemen stok', 'slug' => 'manajemen-stok', 'content' => 'Sistem kontrol stok agar tidak sering kosong atau overstock.', 'youtube_url' => '', 'documents' => []],
                     ],
                 ],
                 [
                     'title' => 'Keuangan',
                     'items' => [
-                        ['title' => 'Menghitung laba bersih', 'slug' => 'menghitung-laba-bersih', 'content' => 'Rumus dan indikator untuk memantau laba bersih apotek.', 'documents' => []],
-                        ['title' => 'Mengelola arus kas', 'slug' => 'mengelola-arus-kas', 'content' => 'Cara menjaga cashflow tetap sehat setiap bulan.', 'documents' => []],
-                        ['title' => 'Menentukan target omzet', 'slug' => 'menentukan-target-omzet', 'content' => 'Metode menetapkan target omzet yang terukur.', 'documents' => []],
+                        ['title' => 'Menghitung laba bersih', 'slug' => 'menghitung-laba-bersih', 'content' => 'Rumus dan indikator untuk memantau laba bersih apotek.', 'youtube_url' => '', 'documents' => []],
+                        ['title' => 'Mengelola arus kas', 'slug' => 'mengelola-arus-kas', 'content' => 'Cara menjaga cashflow tetap sehat setiap bulan.', 'youtube_url' => '', 'documents' => []],
+                        ['title' => 'Menentukan target omzet', 'slug' => 'menentukan-target-omzet', 'content' => 'Metode menetapkan target omzet yang terukur.', 'youtube_url' => '', 'documents' => []],
                     ],
                 ],
                 [
                     'title' => 'Pemasaran',
                     'items' => [
-                        ['title' => 'Cara mendapatkan pelanggan', 'slug' => 'cara-mendapatkan-pelanggan', 'content' => 'Langkah pemasaran awal untuk menarik pelanggan baru.', 'documents' => []],
-                        ['title' => 'Membangun loyalitas', 'slug' => 'membangun-loyalitas', 'content' => 'Strategi retensi pelanggan untuk pertumbuhan jangka panjang.', 'documents' => []],
-                        ['title' => 'Promosi yang sesuai etika profesi', 'slug' => 'promosi-yang-sesuai-etika-profesi', 'content' => 'Prinsip promosi apotek yang etis dan profesional.', 'documents' => []],
+                        ['title' => 'Cara mendapatkan pelanggan', 'slug' => 'cara-mendapatkan-pelanggan', 'content' => 'Langkah pemasaran awal untuk menarik pelanggan baru.', 'youtube_url' => '', 'documents' => []],
+                        ['title' => 'Membangun loyalitas', 'slug' => 'membangun-loyalitas', 'content' => 'Strategi retensi pelanggan untuk pertumbuhan jangka panjang.', 'youtube_url' => '', 'documents' => []],
+                        ['title' => 'Promosi yang sesuai etika profesi', 'slug' => 'promosi-yang-sesuai-etika-profesi', 'content' => 'Prinsip promosi apotek yang etis dan profesional.', 'youtube_url' => '', 'documents' => []],
                     ],
                 ],
                 [
                     'title' => 'Teknologi',
                     'items' => [
-                        ['title' => 'Penggunaan software', 'slug' => 'penggunaan-software', 'content' => 'Manfaat software apotek untuk operasional cepat dan akurat.', 'documents' => []],
-                        ['title' => 'Dashboard', 'slug' => 'dashboard', 'content' => 'Metode membaca dashboard untuk keputusan harian.', 'documents' => []],
-                        ['title' => 'Laporan', 'slug' => 'laporan', 'content' => 'Jenis laporan penting yang wajib dipantau pemilik apotek.', 'documents' => []],
-                        ['title' => 'Analisis penjualan', 'slug' => 'analisis-penjualan', 'content' => 'Pendekatan analisis data penjualan untuk optimasi produk.', 'documents' => []],
+                        ['title' => 'Penggunaan software', 'slug' => 'penggunaan-software', 'content' => 'Manfaat software apotek untuk operasional cepat dan akurat.', 'youtube_url' => '', 'documents' => []],
+                        ['title' => 'Dashboard', 'slug' => 'dashboard', 'content' => 'Metode membaca dashboard untuk keputusan harian.', 'youtube_url' => '', 'documents' => []],
+                        ['title' => 'Laporan', 'slug' => 'laporan', 'content' => 'Jenis laporan penting yang wajib dipantau pemilik apotek.', 'youtube_url' => '', 'documents' => []],
+                        ['title' => 'Analisis penjualan', 'slug' => 'analisis-penjualan', 'content' => 'Pendekatan analisis data penjualan untuk optimasi produk.', 'youtube_url' => '', 'documents' => []],
                     ],
                 ],
                 [
                     'title' => 'Pengembangan Bisnis',
                     'items' => [
-                        ['title' => 'Membuka cabang', 'slug' => 'membuka-cabang', 'content' => 'Tahapan ekspansi ke cabang baru dengan risiko terkendali.', 'documents' => []],
-                        ['title' => 'Membangun tim', 'slug' => 'membangun-tim', 'content' => 'Struktur tim ideal untuk apotek yang sedang bertumbuh.', 'documents' => []],
-                        ['title' => 'Standardisasi operasional', 'slug' => 'standardisasi-operasional', 'content' => 'Standar proses agar kualitas layanan tetap konsisten.', 'documents' => []],
+                        ['title' => 'Membuka cabang', 'slug' => 'membuka-cabang', 'content' => 'Tahapan ekspansi ke cabang baru dengan risiko terkendali.', 'youtube_url' => '', 'documents' => []],
+                        ['title' => 'Membangun tim', 'slug' => 'membangun-tim', 'content' => 'Struktur tim ideal untuk apotek yang sedang bertumbuh.', 'youtube_url' => '', 'documents' => []],
+                        ['title' => 'Standardisasi operasional', 'slug' => 'standardisasi-operasional', 'content' => 'Standar proses agar kualitas layanan tetap konsisten.', 'youtube_url' => '', 'documents' => []],
                     ],
                 ],
                 [
                     'title' => 'Franchise / Licensing',
                     'items' => [
-                        ['title' => 'Cara menjual sistem bisnis', 'slug' => 'cara-menjual-sistem-bisnis', 'content' => 'Kerangka mengemas sistem apotek menjadi produk bisnis.', 'documents' => []],
-                        ['title' => 'Model royalti', 'slug' => 'model-royalti', 'content' => 'Contoh model royalti yang adil dan berkelanjutan.', 'documents' => []],
-                        ['title' => 'Membership', 'slug' => 'membership', 'content' => 'Skema membership untuk mitra atau pelanggan loyal.', 'documents' => []],
-                        ['title' => 'Pendampingan', 'slug' => 'pendampingan', 'content' => 'Paket pendampingan agar implementasi sistem berhasil.', 'documents' => []],
+                        ['title' => 'Cara menjual sistem bisnis', 'slug' => 'cara-menjual-sistem-bisnis', 'content' => 'Kerangka mengemas sistem apotek menjadi produk bisnis.', 'youtube_url' => '', 'documents' => []],
+                        ['title' => 'Model royalti', 'slug' => 'model-royalti', 'content' => 'Contoh model royalti yang adil dan berkelanjutan.', 'youtube_url' => '', 'documents' => []],
+                        ['title' => 'Membership', 'slug' => 'membership', 'content' => 'Skema membership untuk mitra atau pelanggan loyal.', 'youtube_url' => '', 'documents' => []],
+                        ['title' => 'Pendampingan', 'slug' => 'pendampingan', 'content' => 'Paket pendampingan agar implementasi sistem berhasil.', 'youtube_url' => '', 'documents' => []],
                     ],
                 ],
                 [
                     'title' => 'Lampiran',
                     'items' => [
-                        ['title' => 'SOP', 'slug' => 'lampiran-sop', 'content' => 'Contoh SOP siap pakai untuk operasional apotek.', 'documents' => []],
-                        ['title' => 'Checklist', 'slug' => 'lampiran-checklist', 'content' => 'Checklist aktivitas harian dan mingguan apotek.', 'documents' => []],
-                        ['title' => 'Template', 'slug' => 'lampiran-template', 'content' => 'Template dokumen pendukung operasional bisnis apotek.', 'documents' => []],
-                        ['title' => 'Form', 'slug' => 'lampiran-form', 'content' => 'Kumpulan form administrasi yang mudah diadaptasi.', 'documents' => []],
-                        ['title' => 'KPI', 'slug' => 'lampiran-kpi', 'content' => 'Indikator kinerja utama untuk evaluasi bisnis apotek.', 'documents' => []],
-                        ['title' => 'Contoh laporan', 'slug' => 'lampiran-contoh-laporan', 'content' => 'Contoh laporan yang dibutuhkan untuk kontrol manajemen.', 'documents' => []],
+                        ['title' => 'SOP', 'slug' => 'lampiran-sop', 'content' => 'Contoh SOP siap pakai untuk operasional apotek.', 'youtube_url' => '', 'documents' => []],
+                        ['title' => 'Checklist', 'slug' => 'lampiran-checklist', 'content' => 'Checklist aktivitas harian dan mingguan apotek.', 'youtube_url' => '', 'documents' => []],
+                        ['title' => 'Template', 'slug' => 'lampiran-template', 'content' => 'Template dokumen pendukung operasional bisnis apotek.', 'youtube_url' => '', 'documents' => []],
+                        ['title' => 'Form', 'slug' => 'lampiran-form', 'content' => 'Kumpulan form administrasi yang mudah diadaptasi.', 'youtube_url' => '', 'documents' => []],
+                        ['title' => 'KPI', 'slug' => 'lampiran-kpi', 'content' => 'Indikator kinerja utama untuk evaluasi bisnis apotek.', 'youtube_url' => '', 'documents' => []],
+                        ['title' => 'Contoh laporan', 'slug' => 'lampiran-contoh-laporan', 'content' => 'Contoh laporan yang dibutuhkan untuk kontrol manajemen.', 'youtube_url' => '', 'documents' => []],
                     ],
                 ],
             ],
@@ -173,6 +175,7 @@ class EbookContent extends Model
                         $usedSlugs[] = $slug;
 
                         $content = is_array($item) ? trim((string) data_get($item, 'content', '')) : '';
+                        $youtubeUrl = is_array($item) ? trim((string) data_get($item, 'youtube_url', '')) : '';
                         $documents = [];
 
                         if (is_array($item)) {
@@ -213,6 +216,7 @@ class EbookContent extends Model
                             'title' => $itemTitle,
                             'slug' => $slug,
                             'content' => $content,
+                            'youtube_url' => $youtubeUrl,
                             'documents' => $documents,
                         ];
                     })

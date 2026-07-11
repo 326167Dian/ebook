@@ -191,6 +191,40 @@
             gap: 12px;
         }
 
+        .point-video-box {
+            margin-top: 14px;
+            margin-bottom: 14px;
+            padding: 12px;
+            border-radius: 14px;
+            background: rgba(var(--ebook-primary-rgb), 0.08);
+            border: 1px solid rgba(var(--ebook-primary-rgb), 0.12);
+        }
+
+        .point-video-title {
+            font-family: var(--ebook-title-font);
+            font-weight: 800;
+            color: var(--ebook-title-color);
+            margin-bottom: 8px;
+        }
+
+        .point-video-frame {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(16, 42, 67, 0.18);
+            background: #000;
+        }
+
+        .point-video-frame iframe {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
         .point-document-list {
             display: grid;
             gap: 10px;
@@ -457,6 +491,21 @@
                         {!! $normalizedPointContent !!}
                     @else
                         <p class="mb-0">Konten untuk poin ini belum diisi. Silakan login admin untuk menambahkan isi halaman.</p>
+                    @endif
+
+                    @if (!empty($youtubeEmbedUrl))
+                        <div class="point-video-box">
+                            <div class="point-video-title">Video Pembelajaran</div>
+                            <div class="point-video-frame">
+                                <iframe
+                                    src="{{ $youtubeEmbedUrl }}"
+                                    title="Video YouTube - {{ $point['title'] }}"
+                                    loading="lazy"
+                                    referrerpolicy="strict-origin-when-cross-origin"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    allowfullscreen></iframe>
+                            </div>
+                        </div>
                     @endif
 
                     @php

@@ -86,6 +86,7 @@ class EbookController extends Controller
         $nextPoint = $currentIndex !== false && $currentIndex < count($readablePoints) - 1 ? $readablePoints[$currentIndex + 1] : null;
         $pointNumber = $currentIndex !== false ? $currentIndex + 1 : null;
         $totalPoints = count($readablePoints);
+        $youtubeEmbedUrl = $this->resolveYoutubeEmbedUrl((string) ($selectedPoint['youtube_url'] ?? ''));
 
         return view('ebook.point', [
             'content' => $content,
@@ -96,9 +97,47 @@ class EbookController extends Controller
             'nextPoint' => $nextPoint,
             'pointNumber' => $pointNumber,
             'totalPoints' => $totalPoints,
+            'youtubeEmbedUrl' => $youtubeEmbedUrl,
             'isMember' => $isMember,
             'isPointLocked' => $isPointLocked,
         ]);
+    }
+
+    private function resolveYoutubeEmbedUrl(string $url): ?string
+    {
+        $url = trim($url);
+
+        if ($url === '') {
+            return null;
+        }
+
+        $parts = parse_url($url);
+        if (!is_array($parts)) {
+            return null;
+        }
+
+        $host = strtolower((string) ($parts['host'] ?? ''));
+        $path = (string) ($parts['path'] ?? '');
+        $videoId = null;
+
+        if (str_contains($host, 'youtu.be')) {
+            $videoId = trim($path, '/');
+        } elseif (str_contains($host, 'youtube.com')) {
+            if (str_starts_with($path, '/watch')) {
+                parse_str((string) ($parts['query'] ?? ''), $query);
+                $videoId = (string) ($query['v'] ?? '');
+            } elseif (str_starts_with($path, '/shorts/')) {
+                $videoId = trim(substr($path, strlen('/shorts/')), '/');
+            } elseif (str_starts_with($path, '/embed/')) {
+                $videoId = trim(substr($path, strlen('/embed/')), '/');
+            }
+        }
+
+        if (!is_string($videoId) || !preg_match('/^[A-Za-z0-9_-]{11}$/', $videoId)) {
+            return null;
+        }
+
+        return 'https://www.youtube.com/embed/' . $videoId;
     }
 
     private function resolveActiveMember(Request $request): ?Member

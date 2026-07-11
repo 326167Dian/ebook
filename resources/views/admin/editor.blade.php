@@ -54,6 +54,43 @@
             border: 1px solid rgba(31, 102, 186, 0.12);
         }
 
+        .point-youtube-preview {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 12px;
+            background: rgba(31, 102, 186, 0.04);
+            border: 1px solid rgba(31, 102, 186, 0.12);
+        }
+
+        .point-youtube-preview-title {
+            font-weight: 700;
+            color: #294c72;
+            margin-bottom: 8px;
+        }
+
+        .point-youtube-preview-frame {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+            box-shadow: 0 10px 20px rgba(31, 102, 186, 0.2);
+        }
+
+        .point-youtube-preview-frame iframe {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        .point-youtube-preview-empty {
+            font-size: 13px;
+            color: #5b7083;
+        }
+
         .ck-editor__editable {
             min-height: 160px;
         }
@@ -395,6 +432,17 @@
                                                 <textarea class="form-control point-content" name="chapters[{{ $index }}][items][{{ $pointIndex }}][content]" rows="4" placeholder="Tuliskan isi halaman detail untuk poin ini...">{{ $point['content'] ?? '' }}</textarea>
                                             </div>
 
+                                            <div class="form-group mt-2 mb-0">
+                                                <label class="form-label">Link YouTube (opsional)</label>
+                                                <input type="url" class="form-control point-youtube-url" name="chapters[{{ $index }}][items][{{ $pointIndex }}][youtube_url]" value="{{ $point['youtube_url'] ?? '' }}" placeholder="contoh: https://www.youtube.com/watch?v=xxxx atau https://youtu.be/xxxx">
+                                                <small class="text-muted d-block mt-1">Video akan tampil otomatis di halaman poin saat link valid YouTube diisi.</small>
+                                            </div>
+
+                                            <div class="point-youtube-preview" data-youtube-preview>
+                                                <div class="point-youtube-preview-title">Preview Video</div>
+                                                <div class="point-youtube-preview-body"></div>
+                                            </div>
+
                                             <div class="point-attachment">
                                                 <label class="form-label">Dokumen Lampiran</label>
                                                 <input type="file" class="form-control point-document" name="chapters[{{ $index }}][items][{{ $pointIndex }}][document_upload][]" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar" multiple>
@@ -477,6 +525,17 @@
             <div class="form-group mb-0">
                 <label class="form-label">Isi Halaman Poin</label>
                 <textarea class="form-control point-content" rows="4" placeholder="Tuliskan isi halaman detail untuk poin ini..."></textarea>
+            </div>
+
+            <div class="form-group mt-2 mb-0">
+                <label class="form-label">Link YouTube (opsional)</label>
+                <input type="url" class="form-control point-youtube-url" placeholder="contoh: https://www.youtube.com/watch?v=xxxx atau https://youtu.be/xxxx">
+                <small class="text-muted d-block mt-1">Video akan tampil otomatis di halaman poin saat link valid YouTube diisi.</small>
+            </div>
+
+            <div class="point-youtube-preview" data-youtube-preview>
+                <div class="point-youtube-preview-title">Preview Video</div>
+                <div class="point-youtube-preview-body"></div>
             </div>
 
             <div class="point-attachment">
@@ -692,6 +751,80 @@
             });
         }
 
+        function resolveYoutubeEmbedUrl(url) {
+            const value = String(url || '').trim();
+            if (!value) {
+                return null;
+            }
+
+            let parsed;
+            try {
+                parsed = new URL(value);
+            } catch (error) {
+                return null;
+            }
+
+            const host = parsed.hostname.toLowerCase();
+            const path = parsed.pathname || '';
+            let videoId = '';
+
+            if (host.includes('youtu.be')) {
+                videoId = path.replace(/^\/+/, '').split('/')[0] || '';
+            } else if (host.includes('youtube.com')) {
+                if (path.startsWith('/watch')) {
+                    videoId = parsed.searchParams.get('v') || '';
+                } else if (path.startsWith('/shorts/')) {
+                    videoId = path.slice('/shorts/'.length).split('/')[0] || '';
+                } else if (path.startsWith('/embed/')) {
+                    videoId = path.slice('/embed/'.length).split('/')[0] || '';
+                }
+            }
+
+            if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) {
+                return null;
+            }
+
+            return `https://www.youtube.com/embed/${videoId}`;
+        }
+
+        function renderYoutubePreviewForInput(youtubeInput) {
+            const pointCard = youtubeInput.closest('.point-card');
+            if (!pointCard) {
+                return;
+            }
+
+            const previewBody = pointCard.querySelector('.point-youtube-preview-body');
+            if (!previewBody) {
+                return;
+            }
+
+            const embedUrl = resolveYoutubeEmbedUrl(youtubeInput.value);
+
+            if (!embedUrl) {
+                previewBody.innerHTML = '<div class="point-youtube-preview-empty">Tempel link YouTube yang valid untuk melihat preview video.</div>';
+                return;
+            }
+
+            previewBody.innerHTML = `
+                <div class="point-youtube-preview-frame">
+                    <iframe
+                        src="${embedUrl}"
+                        title="Preview Video YouTube"
+                        loading="lazy"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+            `;
+        }
+
+        function renderAllYoutubePreviews(container) {
+            container.querySelectorAll('.point-youtube-url').forEach((youtubeInput) => {
+                renderYoutubePreviewForInput(youtubeInput);
+            });
+        }
+
         function refreshIndexes() {
             const chapterCards = wrapper.querySelectorAll('.chapter-card');
 
@@ -704,6 +837,7 @@
                     pointCard.querySelector('.point-number').textContent = pointIndex + 1;
                     pointCard.querySelector('.point-title').name = `chapters[${chapterIndex}][items][${pointIndex}][title]`;
                     pointCard.querySelector('.point-content').name = `chapters[${chapterIndex}][items][${pointIndex}][content]`;
+                    pointCard.querySelector('.point-youtube-url').name = `chapters[${chapterIndex}][items][${pointIndex}][youtube_url]`;
                     pointCard.querySelector('.point-document').name = `chapters[${chapterIndex}][items][${pointIndex}][document_upload][]`;
 
                     pointCard.querySelectorAll('.existing-document-item').forEach((documentItem, documentIndex) => {
@@ -736,6 +870,7 @@
             ensurePoint(chapterCard);
             refreshIndexes();
             initEditorsIn(chapterCard);
+            renderAllYoutubePreviews(chapterCard);
             setDirtyState(true);
         }
 
@@ -743,6 +878,7 @@
             chapterCard.querySelector('.points-wrapper').appendChild(pointTemplate.content.cloneNode(true));
             refreshIndexes();
             initEditorsIn(chapterCard);
+            renderAllYoutubePreviews(chapterCard);
             setDirtyState(true);
         }
 
@@ -804,11 +940,27 @@
             if (documentInput) {
                 renderDocumentPreview(documentInput);
             }
+
+            const youtubeInput = event.target.closest('.point-youtube-url');
+            if (youtubeInput) {
+                renderYoutubePreviewForInput(youtubeInput);
+            }
+        });
+
+        wrapper.addEventListener('input', (event) => {
+            const youtubeInput = event.target.closest('.point-youtube-url');
+            if (!youtubeInput) {
+                return;
+            }
+
+            renderYoutubePreviewForInput(youtubeInput);
         });
 
         wrapper.querySelectorAll('.point-document').forEach((documentInput) => {
             renderDocumentPreview(documentInput);
         });
+
+        renderAllYoutubePreviews(wrapper);
 
         editorForm.addEventListener('input', () => {
             setDirtyState(true);
