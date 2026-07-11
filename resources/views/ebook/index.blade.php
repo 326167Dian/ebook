@@ -87,6 +87,28 @@
             color: #fff !important;
         }
 
+        .appHeader .right {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .member-session-name {
+            display: inline-flex;
+            align-items: center;
+            max-width: 150px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
         .appHeader .pageTitle {
             display: flex;
             align-items: center;
@@ -334,6 +356,12 @@
         }
 
         @media (max-width: 576px) {
+            .member-session-name {
+                max-width: 95px;
+                padding: 4px 8px;
+                font-size: 11px;
+            }
+
             .author-photo-frame {
                 width: clamp(82px, 30vw, 96px);
             }
@@ -536,6 +564,7 @@
         </div>
         <div class="right">
             @if (!empty($isMember))
+                <span class="member-session-name" title="{{ $memberName ?? '' }}">{{ $memberName ?? 'Member' }}</span>
                 <form method="POST" action="{{ route('member.logout') }}" class="d-inline">
                     @csrf
                     <button type="submit" class="headerButton text-light border-0 bg-transparent" title="Logout Member">

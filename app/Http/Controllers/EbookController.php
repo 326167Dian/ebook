@@ -39,6 +39,7 @@ class EbookController extends Controller
             'covers' => $covers,
             'content' => $content,
             'isMember' => $member !== null,
+            'memberName' => $member?->name,
         ]);
     }
 
@@ -99,6 +100,7 @@ class EbookController extends Controller
             'totalPoints' => $totalPoints,
             'youtubeEmbedUrl' => $youtubeEmbedUrl,
             'isMember' => $isMember,
+            'memberName' => $member?->name,
             'isPointLocked' => $isPointLocked,
         ]);
     }

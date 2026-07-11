@@ -78,7 +78,8 @@
 
             @if (!empty($member->payment_proof_path))
                 <div class="alert alert-info mb-3">
-                    Bukti pembayaran sudah pernah diupload. Anda bisa upload ulang jika ingin mengganti bukti.
+                        Bukti pembayaran sudah pernah diupload. tapi tidak sesuai, Anda bisa
+                        upload ulang dengan bukti bayar yang sesuai
                     <div class="mt-2">
                         <a href="{{ asset($member->payment_proof_path) }}" target="_blank" rel="noopener">Lihat bukti yang sudah diupload</a>
                     </div>
