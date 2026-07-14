@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#1f66ba" />
     <title>Registrasi Member E-Book</title>
     <link rel="stylesheet" href="{{ asset('Mobilekit/HTML/assets/css/style.css') }}">
@@ -71,7 +72,9 @@
             @endif
 
             <div class="price-note mb-3">
-                Upload bukti transfer sebesar <strong>Rp. 99.000</strong>. Akun akan aktif setelah diverifikasi admin.
+                Upload bukti transfer sebesar <del>Rp. 250.000 </del><strong>Rp. 99.000</strong>.<Br>
+                ke Rek BCA 1391928130 a/n eneng siti wulandari<br>
+                Akun akan aktif setelah diverifikasi admin.
             </div>
 
             <form method="POST" action="{{ route('member.register.submit') }}" enctype="multipart/form-data">
@@ -79,13 +82,15 @@
 
                 <div class="form-group boxed">
                     <div class="input-wrapper">
-                        <input type="text" class="form-control" name="name" placeholder="Nama" value="{{ old('name') }}" required>
+                        <input type="text" class="form-control" name="name" placeholder="Nama"
+                            value="{{ old('name') }}" required>
                     </div>
                 </div>
 
                 <div class="form-group boxed mt-2">
                     <div class="input-wrapper">
-                        <input type="email" class="form-control" name="email" placeholder="Alamat email" value="{{ old('email') }}" required>
+                        <input type="email" class="form-control" name="email" placeholder="Alamat email"
+                            value="{{ old('email') }}" required>
                     </div>
                 </div>
 
@@ -97,7 +102,8 @@
 
                 <div class="form-group boxed mt-2">
                     <div class="input-wrapper">
-                        <input type="password" class="form-control" name="password_confirmation" placeholder="Konfirmasi password" required>
+                        <input type="password" class="form-control" name="password_confirmation"
+                            placeholder="Konfirmasi password" required>
                     </div>
                 </div>
 
@@ -111,7 +117,8 @@
                 <button type="submit" class="btn btn-ebook btn-block mt-3">Daftar & Akses E-Book</button>
             </form>
 
-            <a href="{{ route('member.login') }}" class="btn btn-outline-primary btn-block mt-2">Saya sudah punya akun</a>
+            <a href="{{ route('member.login') }}" class="btn btn-outline-primary btn-block mt-2">Saya sudah punya
+                akun</a>
             <a href="{{ route('admin.login') }}" class="btn btn-link btn-block mt-2">Masuk sebagai Admin</a>
         </div>
     </div>

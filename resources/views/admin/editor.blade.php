@@ -111,6 +111,36 @@
             min-height: 220px;
         }
 
+        .text-style-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            margin-bottom: 0;
+            padding: 8px 10px;
+            border-radius: 10px;
+            background: rgba(31, 102, 186, 0.05);
+            border: 1px solid rgba(31, 102, 186, 0.12);
+            flex-wrap: wrap;
+        }
+
+        .text-style-toolbar label {
+            font-size: 12px;
+            color: #294c72;
+            font-weight: 700;
+        }
+
+        .text-style-toolbar select {
+            min-width: 120px;
+            max-width: 160px;
+            font-size: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(31, 102, 186, 0.18);
+            background: #fff;
+            color: #294c72;
+            padding: 4px 8px;
+        }
+
         .btn-ebook {
             background: var(--editor-primary);
             border: 0;
@@ -645,6 +675,82 @@
             };
         }
 
+        function addTextStyleControls(editor) {
+            const toolbarElement = editor.ui.view.toolbar?.element;
+            if (!toolbarElement) {
+                return;
+            }
+
+            const editorRoot = toolbarElement.closest('.ck-editor');
+            if (!editorRoot) {
+                return;
+            }
+
+            const controlsWrapper = editorRoot.querySelector('.text-style-toolbar');
+            if (controlsWrapper) {
+                return;
+            }
+
+            const styleToolbar = document.createElement('div');
+            styleToolbar.className = 'text-style-toolbar';
+            styleToolbar.innerHTML = `
+                <label for="font-family-select">Font</label>
+                <select id="font-family-select" data-font-family-select>
+                    <option value="">Pilih font</option>
+                    <option value="Arial, sans-serif">Arial</option>
+                    <option value="Verdana, Geneva, sans-serif">Verdana</option>
+                    <option value="Tahoma, Geneva, sans-serif">Tahoma</option>
+                    <option value="Georgia, serif">Georgia</option>
+                    <option value="Times New Roman, serif">Times New Roman</option>
+                </select>
+                <label for="font-size-select">Ukuran</label>
+                <select id="font-size-select" data-font-size-select>
+                    <option value="">Pilih ukuran</option>
+                    <option value="12px">12px</option>
+                    <option value="14px">14px</option>
+                    <option value="16px">16px</option>
+                    <option value="18px">18px</option>
+                    <option value="20px">20px</option>
+                    <option value="24px">24px</option>
+                    <option value="28px">28px</option>
+                    <option value="32px">32px</option>
+                </select>
+            `;
+
+            const fontSelect = styleToolbar.querySelector('[data-font-family-select]');
+            const sizeSelect = styleToolbar.querySelector('[data-font-size-select]');
+
+            const applySelectedStyles = () => {
+                const selectedFont = fontSelect.value;
+                const selectedSize = sizeSelect.value;
+
+                if (!selectedFont && !selectedSize) {
+                    return;
+                }
+
+                if (editor.model.document.selection.isCollapsed) {
+                    return;
+                }
+
+                editor.model.change((writer) => {
+                    const selection = editor.model.document.selection;
+
+                    if (selectedFont) {
+                        writer.setStyle('fontFamily', selectedFont, selection);
+                    }
+
+                    if (selectedSize) {
+                        writer.setStyle('fontSize', selectedSize, selection);
+                    }
+                });
+            };
+
+            fontSelect.addEventListener('change', applySelectedStyles);
+            sizeSelect.addEventListener('change', applySelectedStyles);
+
+            toolbarElement.insertAdjacentElement('afterend', styleToolbar);
+        }
+
         function initEditorForTextarea(textarea) {
             if (!textarea || textarea.dataset.ckeditorInitialized === '1') {
                 return;
@@ -675,6 +781,7 @@
             ClassicEditor
                 .create(textarea, editorConfig)
                 .then((editor) => {
+                    addTextStyleControls(editor);
                     textarea.dataset.ckeditorInitialized = '1';
                     editorInstances.set(textarea, editor);
                     editor.model.document.on('change:data', () => {
