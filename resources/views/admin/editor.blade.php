@@ -683,6 +683,56 @@
             };
         }
 
+        function fontStylePlugin(editor) {
+            editor.model.schema.extend('$text', {
+                allowAttributes: ['customFontFamily', 'customFontSize']
+            });
+
+            editor.conversion.for('downcast').attributeToElement({
+                model: 'customFontFamily',
+                view: (value, { writer }) => {
+                    if (!value) {
+                        return;
+                    }
+
+                    return writer.createAttributeElement('span', { style: `font-family:${value}` }, { priority: 7 });
+                }
+            });
+
+            editor.conversion.for('upcast').elementToAttribute({
+                view: {
+                    name: 'span',
+                    styles: { 'font-family': /.+/ }
+                },
+                model: {
+                    key: 'customFontFamily',
+                    value: (viewElement) => viewElement.getStyle('font-family')
+                }
+            });
+
+            editor.conversion.for('downcast').attributeToElement({
+                model: 'customFontSize',
+                view: (value, { writer }) => {
+                    if (!value) {
+                        return;
+                    }
+
+                    return writer.createAttributeElement('span', { style: `font-size:${value}` }, { priority: 6 });
+                }
+            });
+
+            editor.conversion.for('upcast').elementToAttribute({
+                view: {
+                    name: 'span',
+                    styles: { 'font-size': /.+/ }
+                },
+                model: {
+                    key: 'customFontSize',
+                    value: (viewElement) => viewElement.getStyle('font-size')
+                }
+            });
+        }
+
         function addTextStyleControls(editor) {
             const toolbarElement = editor.ui.view.toolbar?.element;
             if (!toolbarElement) {
@@ -736,21 +786,29 @@
                     return;
                 }
 
-                if (editor.model.document.selection.isCollapsed) {
-                    return;
-                }
-
                 editor.model.change((writer) => {
                     const selection = editor.model.document.selection;
 
-                    if (selectedFont) {
-                        writer.setStyle('fontFamily', selectedFont, selection);
-                    }
+                    const applyAttribute = (attributeKey, value) => {
+                        if (!value) {
+                            return;
+                        }
 
-                    if (selectedSize) {
-                        writer.setStyle('fontSize', selectedSize, selection);
-                    }
+                        if (selection.isCollapsed) {
+                            writer.setSelectionAttribute(attributeKey, value);
+                            return;
+                        }
+
+                        for (const range of editor.model.schema.getValidRanges(selection.getRanges(), attributeKey)) {
+                            writer.setAttribute(attributeKey, value, range);
+                        }
+                    };
+
+                    applyAttribute('customFontFamily', selectedFont);
+                    applyAttribute('customFontSize', selectedSize);
                 });
+
+                editor.editing.view.focus();
             };
 
             fontSelect.addEventListener('change', applySelectedStyles);
@@ -766,7 +824,7 @@
 
             const isRichTextEditor = textarea.classList.contains('rich-text-editor');
             const editorConfig = {
-                extraPlugins: [editorPlugin],
+                extraPlugins: [editorPlugin, fontStylePlugin],
                 toolbar: isRichTextEditor ? [
                     'heading', '|',
                     'bold', 'italic', 'link', '|',
