@@ -200,6 +200,103 @@
             margin-top: 10px;
             flex-wrap: wrap;
         }
+
+        .chapter-tabs,
+        .point-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .tab-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 7px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(31, 102, 186, 0.18);
+            background: #fff;
+            color: #294c72;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+        }
+
+        .tab-pill:hover {
+            border-color: rgba(31, 102, 186, 0.4);
+        }
+
+        .tab-pill.is-active {
+            background: var(--editor-primary);
+            border-color: var(--editor-primary);
+            color: #fff;
+        }
+
+        .chapter-card,
+        .point-card {
+            display: none;
+        }
+
+        .chapter-card.is-active,
+        .point-card.is-active {
+            display: block;
+        }
+
+        .point-editor-nav {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .point-editor-progress {
+            grid-column: 1 / -1;
+            font-size: 12px;
+            font-weight: 700;
+            color: #5b7083;
+        }
+
+        .point-editor-nav-link {
+            display: block;
+            width: 100%;
+            border-radius: 14px;
+            padding: 12px 14px;
+            background: var(--editor-soft);
+            border: 1px solid rgba(31, 102, 186, 0.14);
+            color: #294c72;
+            cursor: pointer;
+        }
+
+        .point-editor-nav-link.next {
+            text-align: right;
+        }
+
+        .point-editor-nav-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #5b7083;
+            margin-bottom: 4px;
+        }
+
+        .point-editor-nav-title {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 576px) {
+            .point-editor-nav {
+                grid-template-columns: 1fr;
+            }
+
+            .point-editor-nav-link.next {
+                text-align: left;
+            }
+        }
     </style>
 </head>
 
@@ -433,6 +530,10 @@
                         <h3 class="mb-0">Daftar Isi</h3>
                         <button type="button" class="btn btn-outline-primary" id="add-chapter">Tambah Bab</button>
                     </div>
+                    <p class="text-secondary small mb-2">Pilih bab dan poin di bawah untuk mengisi satu poin per halaman, seperti tampilan pembaca di frontend.</p>
+
+                    <div id="point-editor-anchor"></div>
+                    <div id="chapter-tabs" class="chapter-tabs"></div>
 
                     <div id="chapters-wrapper">
                         @foreach ($formChapters as $index => $chapter)
@@ -451,6 +552,8 @@
                                     <label class="form-label mb-0">Poin Bab</label>
                                     <button type="button" class="btn btn-sm btn-outline-primary add-point">Tambah Poin</button>
                                 </div>
+
+                                <div class="point-tabs" data-point-tabs></div>
 
                                 <div class="points-wrapper">
                                     @foreach (($chapter['items'] ?? []) as $pointIndex => $point)
@@ -517,6 +620,8 @@
                         @endforeach
                     </div>
 
+                    <div id="point-editor-nav" class="point-editor-nav"></div>
+
                     <div class="section-save-actions">
                         <button type="submit" class="btn btn-ebook">Simpan Section Daftar Isi</button>
                     </div>
@@ -543,6 +648,8 @@
                 <label class="form-label mb-0">Poin Bab</label>
                 <button type="button" class="btn btn-sm btn-outline-primary add-point">Tambah Poin</button>
             </div>
+
+            <div class="point-tabs" data-point-tabs></div>
 
             <div class="points-wrapper"></div>
         </div>
@@ -600,7 +707,14 @@
         const uploadUrl = "{{ route('admin.ckeditor.upload') }}";
         const SCROLL_Y_KEY = 'adminEditorScrollY';
         const RESTORE_SCROLL_FLAG_KEY = 'adminEditorRestoreScroll';
+        const ACTIVE_CHAPTER_INDEX_KEY = 'adminEditorActiveChapterIndex';
+        const ACTIVE_POINT_INDEX_KEY = 'adminEditorActivePointIndex';
+        const chapterTabsContainer = document.getElementById('chapter-tabs');
+        const pointEditorNav = document.getElementById('point-editor-nav');
+        const pointEditorAnchor = document.getElementById('point-editor-anchor');
         let hasChanges = false;
+        let activeChapterCard = null;
+        let activePointCard = null;
 
         function saveScrollPositionForReload() {
             sessionStorage.setItem(SCROLL_Y_KEY, String(window.scrollY || window.pageYOffset || 0));
@@ -628,6 +742,47 @@
                     });
                 });
             });
+        }
+
+        function saveActiveChapterPointForReload() {
+            if (!activeChapterCard || !activePointCard) {
+                return;
+            }
+
+            const chapterIndex = Array.from(wrapper.querySelectorAll('.chapter-card')).indexOf(activeChapterCard);
+            const pointIndex = Array.from(activeChapterCard.querySelectorAll('.point-card')).indexOf(activePointCard);
+
+            if (chapterIndex === -1 || pointIndex === -1) {
+                return;
+            }
+
+            sessionStorage.setItem(ACTIVE_CHAPTER_INDEX_KEY, String(chapterIndex));
+            sessionStorage.setItem(ACTIVE_POINT_INDEX_KEY, String(pointIndex));
+        }
+
+        function restoreActiveChapterPointAfterReload() {
+            const chapterIndex = Number.parseInt(sessionStorage.getItem(ACTIVE_CHAPTER_INDEX_KEY) || '', 10);
+            const pointIndex = Number.parseInt(sessionStorage.getItem(ACTIVE_POINT_INDEX_KEY) || '', 10);
+
+            sessionStorage.removeItem(ACTIVE_CHAPTER_INDEX_KEY);
+            sessionStorage.removeItem(ACTIVE_POINT_INDEX_KEY);
+
+            if (Number.isNaN(chapterIndex) || Number.isNaN(pointIndex)) {
+                return false;
+            }
+
+            const chapterCard = wrapper.querySelectorAll('.chapter-card')[chapterIndex];
+            if (!chapterCard) {
+                return false;
+            }
+
+            const pointCard = chapterCard.querySelectorAll('.point-card')[pointIndex];
+            if (!pointCard) {
+                return false;
+            }
+
+            activateChapter(chapterCard, { pointCard, skipScroll: true });
+            return true;
         }
 
         function setDirtyState(isDirty) {
@@ -1037,6 +1192,153 @@
             }
         }
 
+        function chapterTabLabel(chapterCard, index) {
+            const value = (chapterCard.querySelector('.chapter-title')?.value || '').trim();
+            return value ? `${index + 1}. ${value}` : `Bab ${index + 1}`;
+        }
+
+        function pointTabLabel(pointCard, index) {
+            const value = (pointCard.querySelector('.point-title')?.value || '').trim();
+            return value || `Poin ${index + 1}`;
+        }
+
+        function pointLabelForEntry(entry) {
+            const siblings = Array.from(entry.chapterCard.querySelectorAll('.point-card'));
+            return pointTabLabel(entry.pointCard, siblings.indexOf(entry.pointCard));
+        }
+
+        function getFlattenedPointCards() {
+            const flattened = [];
+
+            wrapper.querySelectorAll('.chapter-card').forEach((chapterCard) => {
+                chapterCard.querySelectorAll('.point-card').forEach((pointCard) => {
+                    flattened.push({ chapterCard, pointCard });
+                });
+            });
+
+            return flattened;
+        }
+
+        function buildChapterTabs() {
+            if (!chapterTabsContainer) {
+                return;
+            }
+
+            chapterTabsContainer.innerHTML = '';
+
+            wrapper.querySelectorAll('.chapter-card').forEach((chapterCard, index) => {
+                const pill = document.createElement('button');
+                pill.type = 'button';
+                pill.className = 'tab-pill' + (chapterCard === activeChapterCard ? ' is-active' : '');
+                pill.textContent = chapterTabLabel(chapterCard, index);
+                pill.addEventListener('click', () => activateChapter(chapterCard));
+                chapterTabsContainer.appendChild(pill);
+            });
+        }
+
+        function buildPointTabs(chapterCard) {
+            const pointTabsContainer = chapterCard.querySelector('[data-point-tabs]');
+            if (!pointTabsContainer) {
+                return;
+            }
+
+            pointTabsContainer.innerHTML = '';
+
+            chapterCard.querySelectorAll('.point-card').forEach((pointCard, index) => {
+                const pill = document.createElement('button');
+                pill.type = 'button';
+                pill.className = 'tab-pill' + (pointCard === activePointCard ? ' is-active' : '');
+                pill.textContent = pointTabLabel(pointCard, index);
+                pill.addEventListener('click', () => activatePoint(chapterCard, pointCard));
+                pointTabsContainer.appendChild(pill);
+            });
+        }
+
+        function activateChapter(chapterCard, options = {}) {
+            if (!chapterCard) {
+                return;
+            }
+
+            wrapper.querySelectorAll('.chapter-card').forEach((card) => {
+                card.classList.toggle('is-active', card === chapterCard);
+            });
+
+            activeChapterCard = chapterCard;
+            buildChapterTabs();
+
+            const targetPointCard = options.pointCard || chapterCard.querySelector('.point-card');
+            activatePoint(chapterCard, targetPointCard, options);
+        }
+
+        function activatePoint(chapterCard, pointCard, options = {}) {
+            if (!chapterCard || !pointCard) {
+                return;
+            }
+
+            wrapper.querySelectorAll('.point-card').forEach((card) => {
+                card.classList.toggle('is-active', card === pointCard);
+            });
+
+            activePointCard = pointCard;
+            buildPointTabs(chapterCard);
+            updatePointEditorNav();
+
+            if (!options.skipScroll && pointEditorAnchor) {
+                pointEditorAnchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function updatePointEditorNav() {
+            if (!pointEditorNav) {
+                return;
+            }
+
+            pointEditorNav.innerHTML = '';
+
+            const flattened = getFlattenedPointCards();
+            const currentIndex = flattened.findIndex((entry) => entry.pointCard === activePointCard);
+
+            if (currentIndex === -1) {
+                return;
+            }
+
+            const progress = document.createElement('div');
+            progress.className = 'point-editor-progress';
+            progress.textContent = `Poin ${currentIndex + 1} dari ${flattened.length}`;
+            pointEditorNav.appendChild(progress);
+
+            const previousEntry = currentIndex > 0 ? flattened[currentIndex - 1] : null;
+            const nextEntry = currentIndex < flattened.length - 1 ? flattened[currentIndex + 1] : null;
+
+            const previousSlot = document.createElement('div');
+            if (previousEntry) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'point-editor-nav-link previous';
+                button.innerHTML = '<span class="point-editor-nav-label">&laquo; Poin Sebelumnya</span><span class="point-editor-nav-title"></span>';
+                button.querySelector('.point-editor-nav-title').textContent = pointLabelForEntry(previousEntry);
+                button.addEventListener('click', () => {
+                    activateChapter(previousEntry.chapterCard, { pointCard: previousEntry.pointCard });
+                });
+                previousSlot.appendChild(button);
+            }
+            pointEditorNav.appendChild(previousSlot);
+
+            const nextSlot = document.createElement('div');
+            if (nextEntry) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'point-editor-nav-link next';
+                button.innerHTML = '<span class="point-editor-nav-label">Poin Berikutnya &raquo;</span><span class="point-editor-nav-title"></span>';
+                button.querySelector('.point-editor-nav-title').textContent = pointLabelForEntry(nextEntry);
+                button.addEventListener('click', () => {
+                    activateChapter(nextEntry.chapterCard, { pointCard: nextEntry.pointCard });
+                });
+                nextSlot.appendChild(button);
+            }
+            pointEditorNav.appendChild(nextSlot);
+        }
+
         function addChapter() {
             wrapper.appendChild(chapterTemplate.content.cloneNode(true));
             const chapterCard = wrapper.lastElementChild;
@@ -1045,6 +1347,7 @@
             initEditorsIn(chapterCard);
             renderAllYoutubePreviews(chapterCard);
             setDirtyState(true);
+            activateChapter(chapterCard);
         }
 
         function addPoint(chapterCard) {
@@ -1053,6 +1356,9 @@
             initEditorsIn(chapterCard);
             renderAllYoutubePreviews(chapterCard);
             setDirtyState(true);
+
+            const pointCards = chapterCard.querySelectorAll('.point-card');
+            activateChapter(chapterCard, { pointCard: pointCards[pointCards.length - 1] });
         }
 
         addChapterButton.addEventListener('click', addChapter);
@@ -1086,12 +1392,20 @@
                 }
 
                 const pointCard = removePointButton.closest('.point-card');
+                const wasActive = pointCard === activePointCard;
                 const textarea = pointCard.querySelector('.point-content');
                 destroyEditorForTextarea(textarea);
 
                 pointCard.remove();
                 refreshIndexes();
                 setDirtyState(true);
+
+                if (wasActive) {
+                    activateChapter(chapterCard, { pointCard: chapterCard.querySelector('.point-card') });
+                } else {
+                    buildPointTabs(chapterCard);
+                    updatePointEditorNav();
+                }
                 return;
             }
 
@@ -1102,9 +1416,17 @@
                     return;
                 }
 
-                removeChapterButton.closest('.chapter-card').remove();
+                const chapterCard = removeChapterButton.closest('.chapter-card');
+                const wasActive = chapterCard === activeChapterCard;
+                chapterCard.remove();
                 refreshIndexes();
                 setDirtyState(true);
+
+                if (wasActive) {
+                    activateChapter(wrapper.querySelector('.chapter-card'));
+                } else {
+                    buildChapterTabs();
+                }
             }
         });
 
@@ -1122,11 +1444,21 @@
 
         wrapper.addEventListener('input', (event) => {
             const youtubeInput = event.target.closest('.point-youtube-url');
-            if (!youtubeInput) {
-                return;
+            if (youtubeInput) {
+                renderYoutubePreviewForInput(youtubeInput);
             }
 
-            renderYoutubePreviewForInput(youtubeInput);
+            if (event.target.closest('.chapter-title')) {
+                buildChapterTabs();
+            }
+
+            if (event.target.closest('.point-title')) {
+                const chapterCard = event.target.closest('.chapter-card');
+                if (chapterCard) {
+                    buildPointTabs(chapterCard);
+                }
+                updatePointEditorNav();
+            }
         });
 
         wrapper.querySelectorAll('.point-document').forEach((documentInput) => {
@@ -1152,10 +1484,10 @@
         }
 
         initEditorsIn(editorForm);
-        restoreScrollPositionAfterReload();
 
         editorForm.addEventListener('submit', () => {
             saveScrollPositionForReload();
+            saveActiveChapterPointForReload();
 
             editorInstances.forEach((editor) => {
                 editor.updateSourceElement();
@@ -1167,6 +1499,15 @@
         setDirtyState(false);
 
         refreshIndexes();
+
+        if (!restoreActiveChapterPointAfterReload() && !activeChapterCard) {
+            const initialChapterCard = wrapper.querySelector('.chapter-card');
+            if (initialChapterCard) {
+                activateChapter(initialChapterCard, { skipScroll: true });
+            }
+        }
+
+        restoreScrollPositionAfterReload();
     </script>
 </body>
 
