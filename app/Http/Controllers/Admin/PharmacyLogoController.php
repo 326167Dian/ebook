@@ -10,15 +10,6 @@ use Illuminate\Support\Str;
 
 class PharmacyLogoController extends Controller
 {
-    public function index()
-    {
-        $pharmacyLogos = PharmacyLogo::query()->orderBy('sort_order')->orderBy('id')->get();
-
-        return view('admin.pharmacy-logos', [
-            'pharmacyLogos' => $pharmacyLogos,
-        ]);
-    }
-
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -38,7 +29,7 @@ class PharmacyLogoController extends Controller
             'sort_order' => (int) (PharmacyLogo::max('sort_order') ?? 0) + 1,
         ]);
 
-        return redirect()->route('admin.pharmacy-logos.index')->with('status', 'Logo apotek berhasil ditambahkan.');
+        return redirect()->route('admin.footer.edit')->with('status', 'Logo apotek berhasil ditambahkan.');
     }
 
     public function update(Request $request, PharmacyLogo $pharmacyLogo)
@@ -66,7 +57,7 @@ class PharmacyLogoController extends Controller
             'logo_path' => $logoPath,
         ]);
 
-        return redirect()->route('admin.pharmacy-logos.index')->with('status', 'Logo apotek berhasil diperbarui.');
+        return redirect()->route('admin.footer.edit')->with('status', 'Logo apotek berhasil diperbarui.');
     }
 
     public function destroy(PharmacyLogo $pharmacyLogo)
@@ -74,7 +65,7 @@ class PharmacyLogoController extends Controller
         $this->deleteLogoFile($pharmacyLogo->logo_path);
         $pharmacyLogo->delete();
 
-        return redirect()->route('admin.pharmacy-logos.index')->with('status', 'Logo apotek berhasil dihapus.');
+        return redirect()->route('admin.footer.edit')->with('status', 'Logo apotek berhasil dihapus.');
     }
 
     private function deleteLogoFile(?string $path): void

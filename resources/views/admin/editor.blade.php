@@ -403,14 +403,6 @@
                     @endif
                 </div>
 
-                <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2 border rounded p-3 bg-light">
-                    <div>
-                        <h3 class="mb-1">Logo Apotek Pendukung</h3>
-                        <p class="text-secondary mb-0">Kelola logo apotek yang tampil di bagian bawah dashboard, setelah section Tentang Penulis.</p>
-                    </div>
-                    <a href="{{ route('admin.pharmacy-logos.index') }}" class="btn btn-ebook">Tambah Logo Apotek Pendukung</a>
-                </div>
-
                 <form method="POST" action="{{ route('admin.editor.update') }}" id="editor-form" enctype="multipart/form-data">
                     @csrf
 
@@ -433,38 +425,6 @@
                         <label class="form-label">Deskripsi Hero</label>
                         <textarea class="form-control" rows="3" name="hero_description" required>{{ old('hero_description', $content->hero_description) }}</textarea>
                     </div>
-
-                    <div class="form-group mt-3">
-                        <label class="form-label">Nama Penulis</label>
-                        <input type="text" class="form-control" name="author_name" placeholder="contoh: Ahmad Yasin" value="{{ old('author_name', $content->author_name) }}">
-                        <small class="text-muted d-block mt-1">Dipakai untuk menampilkan nama penulis dan membuat inisial placeholder otomatis jika foto belum diisi.</small>
-                    </div>
-
-                    <div class="form-group mt-3">
-                        <label class="form-label">Tentang Penulis</label>
-                        <div class="rich-text-shell">
-                            <div class="form-text">Gunakan paragraf, subjudul, daftar poin, tabel, atau gambar untuk menulis profil penulis dengan format yang lebih rapi.</div>
-                            <textarea class="form-control rich-text-editor" rows="4" name="intro_note">{{ old('intro_note', $content->intro_note) }}</textarea>
-                        </div>
-                    </div>
-
-                    <div class="form-group mt-3">
-                        <label class="form-label">Path Foto Penulis (relatif dari public)</label>
-                        <input type="text" class="form-control" name="author_photo" placeholder="contoh: storage-public/authors/nama-file.png" value="{{ old('author_photo', $content->author_photo) }}">
-                        <small class="text-muted d-block mt-1">Opsional. Bisa isi path manual atau upload foto baru.</small>
-                    </div>
-
-                    <div class="form-group mt-2">
-                        <label class="form-label">Upload Foto Penulis</label>
-                        <input type="file" class="form-control" name="author_photo_upload" accept="image/png,image/jpeg,image/webp">
-                        <small class="text-muted d-block mt-1">Format: JPG, PNG, WEBP. Maksimal 5MB.</small>
-                    </div>
-
-                    @if (!empty($content->author_photo))
-                        <div class="mt-2">
-                            <img src="{{ asset($content->author_photo) }}" alt="Preview Foto Penulis" style="width: 100%; max-width: 180px; height: auto; border-radius: 16px; border:1px solid rgba(31,102,186,.2); object-fit: cover;">
-                        </div>
-                    @endif
 
                     <div class="form-group mt-3">
                         <label class="form-label">Path Cover (relatif dari public)</label>
@@ -534,6 +494,9 @@
 
                     <div id="point-editor-anchor"></div>
                     <div id="chapter-tabs" class="chapter-tabs"></div>
+                    <div class="chapter-tabs">
+                        <a href="{{ route('admin.footer.edit') }}" class="tab-pill">Footer (Logo Apotek &amp; Tentang Penulis)</a>
+                    </div>
 
                     <div id="chapters-wrapper">
                         @foreach ($formChapters as $index => $chapter)
