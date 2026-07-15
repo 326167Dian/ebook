@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\CkeditorUploadController;
 use App\Http\Controllers\Admin\EbookEditorController;
 use App\Http\Controllers\Admin\MemberModerationController;
+use App\Http\Controllers\Admin\PharmacyLogoController;
 use App\Http\Controllers\EbookController;
 use App\Http\Controllers\MemberAuthController;
 use App\Http\Controllers\StoragePublicFileController;
@@ -49,6 +50,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/admin', [EbookEditorController::class, 'update'])->name('admin.editor.update');
     Route::post('/admin/members/{member}/approve', [MemberModerationController::class, 'approve'])->name('admin.members.approve');
     Route::post('/admin/members/{member}/reject', [MemberModerationController::class, 'reject'])->name('admin.members.reject');
+    Route::get('/admin/pharmacy-logos', [PharmacyLogoController::class, 'index'])->name('admin.pharmacy-logos.index');
+    Route::post('/admin/pharmacy-logos', [PharmacyLogoController::class, 'store'])->name('admin.pharmacy-logos.store');
+    Route::post('/admin/pharmacy-logos/{pharmacyLogo}', [PharmacyLogoController::class, 'update'])->name('admin.pharmacy-logos.update');
+    Route::delete('/admin/pharmacy-logos/{pharmacyLogo}', [PharmacyLogoController::class, 'destroy'])->name('admin.pharmacy-logos.destroy');
     Route::post('/admin/upload-image', [CkeditorUploadController::class, 'store'])->name('admin.ckeditor.upload');
     Route::post('/admin/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
 });

@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\EbookContent;
 use App\Models\Member;
+use App\Models\PharmacyLogo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
 
 class EbookController extends Controller
 {
@@ -35,11 +37,17 @@ class EbookController extends Controller
         $content->chapters = EbookContent::normalizeChapters($content->chapters ?? []);
         $member = $this->resolveActiveMember($request);
 
+        $pharmacyLogos = collect();
+        if (Schema::hasTable('pharmacy_logos')) {
+            $pharmacyLogos = PharmacyLogo::query()->orderBy('sort_order')->orderBy('id')->get();
+        }
+
         return view('ebook.index', [
             'covers' => $covers,
             'content' => $content,
             'isMember' => $member !== null,
             'memberName' => $member?->name,
+            'pharmacyLogos' => $pharmacyLogos,
         ]);
     }
 

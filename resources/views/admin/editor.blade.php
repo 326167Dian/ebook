@@ -306,6 +306,14 @@
                     @endif
                 </div>
 
+                <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2 border rounded p-3 bg-light">
+                    <div>
+                        <h3 class="mb-1">Logo Apotek Pendukung</h3>
+                        <p class="text-secondary mb-0">Kelola logo apotek yang tampil di bagian bawah dashboard, setelah section Tentang Penulis.</p>
+                    </div>
+                    <a href="{{ route('admin.pharmacy-logos.index') }}" class="btn btn-ebook">Tambah Logo Apotek Pendukung</a>
+                </div>
+
                 <form method="POST" action="{{ route('admin.editor.update') }}" id="editor-form" enctype="multipart/form-data">
                     @csrf
 

@@ -355,6 +355,76 @@
             display: none;
         }
 
+        .pharmacy-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 22px;
+            border: 1px solid rgba(var(--ebook-primary-rgb), 0.14);
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(244, 250, 255, 0.95));
+            box-shadow: 0 18px 34px rgba(var(--ebook-primary-rgb), 0.12);
+        }
+
+        .pharmacy-card::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto auto 0;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, var(--ebook-primary), var(--ebook-secondary), var(--ebook-accent));
+        }
+
+        .pharmacy-card-body {
+            position: relative;
+            z-index: 1;
+            padding: 24px 20px 22px;
+        }
+
+        .pharmacy-header {
+            margin-bottom: 18px;
+        }
+
+        .pharmacy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 14px;
+        }
+
+        .pharmacy-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 10px;
+            border-radius: 14px;
+            border: 1px solid rgba(var(--ebook-primary-rgb), 0.12);
+            background: #fff;
+            box-shadow: 0 8px 18px rgba(var(--ebook-primary-rgb), 0.08);
+            text-decoration: none;
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        a.pharmacy-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 14px 26px rgba(var(--ebook-primary-rgb), 0.16);
+        }
+
+        .pharmacy-item img {
+            width: 100%;
+            max-width: 96px;
+            height: 64px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .pharmacy-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #35516d;
+            text-align: center;
+            line-height: 1.25;
+        }
+
         @media (max-width: 576px) {
             .member-session-name {
                 max-width: 95px;
@@ -699,6 +769,37 @@
                 </div>
             </div>
         </div>
+
+        @if (($pharmacyLogos ?? collect())->isNotEmpty())
+            <div class="section mt-4">
+                <div class="pharmacy-card">
+                    <div class="pharmacy-card-body">
+                        <div class="pharmacy-header">
+                            <div class="author-eyebrow">Mitra Pendukung</div>
+                            <h3 class="author-title">Apotek yang Mendukung E-Book Ini</h3>
+                        </div>
+                        <div class="pharmacy-grid">
+                            @foreach ($pharmacyLogos as $logo)
+                                @php
+                                    $logoUrl = trim((string) ($logo->website_url ?? ''));
+                                @endphp
+                                @if ($logoUrl !== '')
+                                    <a href="{{ $logoUrl }}" target="_blank" rel="noopener" class="pharmacy-item" title="{{ $logo->name }}">
+                                        <img src="{{ asset($logo->logo_path) }}" alt="{{ $logo->name }}" loading="lazy">
+                                        <span class="pharmacy-name">{{ $logo->name }}</span>
+                                    </a>
+                                @else
+                                    <div class="pharmacy-item" title="{{ $logo->name }}">
+                                        <img src="{{ asset($logo->logo_path) }}" alt="{{ $logo->name }}" loading="lazy">
+                                        <span class="pharmacy-name">{{ $logo->name }}</span>
+                                    </div>
+                                @endif
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 
     <script src="{{ asset('Mobilekit/HTML/assets/js/lib/bootstrap.min.js') }}"></script>
