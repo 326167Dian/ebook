@@ -193,6 +193,47 @@
             max-width: 100%;
             height: auto;
             display: block;
+            cursor: zoom-in;
+        }
+
+        .image-lightbox {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(10, 18, 28, 0.92);
+        }
+
+        .image-lightbox.is-open {
+            display: flex;
+        }
+
+        .image-lightbox img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 10px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            cursor: zoom-out;
+        }
+
+        .image-lightbox-close {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            width: 42px;
+            height: 42px;
+            border-radius: 999px;
+            border: 0;
+            background: rgba(255, 255, 255, 0.14);
+            color: #fff;
+            font-size: 22px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .point-content figure.image {
@@ -597,9 +638,45 @@
         @endif
     </div>
 
+    <div class="image-lightbox" id="image-lightbox">
+        <button type="button" class="image-lightbox-close" id="image-lightbox-close" aria-label="Tutup">&times;</button>
+        <img src="" alt="" id="image-lightbox-img">
+    </div>
+
     <script src="{{ asset('Mobilekit/HTML/assets/js/lib/bootstrap.min.js') }}"></script>
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
     <script src="{{ asset('Mobilekit/HTML/assets/js/base.js') }}"></script>
+    <script>
+        const lightbox = document.getElementById('image-lightbox');
+        const lightboxImg = document.getElementById('image-lightbox-img');
+        const lightboxClose = document.getElementById('image-lightbox-close');
+
+        function openLightbox(src, alt) {
+            lightboxImg.src = src;
+            lightboxImg.alt = alt || '';
+            lightbox.classList.add('is-open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('is-open');
+            lightboxImg.src = '';
+            document.body.style.overflow = '';
+        }
+
+        document.querySelectorAll('.point-content img').forEach((img) => {
+            img.addEventListener('click', () => openLightbox(img.currentSrc || img.src, img.alt));
+        });
+
+        lightbox.addEventListener('click', closeLightbox);
+        lightboxClose.addEventListener('click', closeLightbox);
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closeLightbox();
+            }
+        });
+    </script>
 </body>
 
 </html>
