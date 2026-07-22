@@ -44,3 +44,18 @@
     --ebook-title-color: #102A43;
     --ebook-app-background: linear-gradient(135deg, #1D4ED8, #3B82F6, #60A5FA);
 }
+
+.point-content ol,
+.rich-content ol {
+    list-style-type: decimal;
+}
+
+.point-content ol ol,
+.rich-content ol ol {
+    list-style-type: lower-alpha;
+}
+
+.point-content ol ol ol,
+.rich-content ol ol ol {
+    list-style-type: lower-roman;
+}

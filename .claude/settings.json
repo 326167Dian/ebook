@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(node test-lightbox.js)",
-      "Bash(rm -f \"C:\\\\Users\\\\ahmad\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--projectLaravel-ebook\\\\a59c9620-89c7-4428-9761-efd4c6925db1\\\\scratchpad\"/test-lightbox.js \"C:\\\\Users\\\\ahmad\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--projectLaravel-ebook\\\\a59c9620-89c7-4428-9761-efd4c6925db1\\\\scratchpad\"/debug-lightbox*.js \"C:\\\\Users\\\\ahmad\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--projectLaravel-ebook\\\\a59c9620-89c7-4428-9761-efd4c6925db1\\\\scratchpad\"/mobile-*.png)"
+      "Bash(rm -f \"C:\\\\Users\\\\ahmad\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--projectLaravel-ebook\\\\a59c9620-89c7-4428-9761-efd4c6925db1\\\\scratchpad\"/test-lightbox.js \"C:\\\\Users\\\\ahmad\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--projectLaravel-ebook\\\\a59c9620-89c7-4428-9761-efd4c6925db1\\\\scratchpad\"/debug-lightbox*.js \"C:\\\\Users\\\\ahmad\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--projectLaravel-ebook\\\\a59c9620-89c7-4428-9761-efd4c6925db1\\\\scratchpad\"/mobile-*.png)",
+      "WebSearch"
     ],
     "additionalDirectories": [
       "C:\\Users\\ahmad\\AppData\\Local\\Temp\\claude\\d--projectLaravel-ebook\\a59c9620-89c7-4428-9761-efd4c6925db1\\scratchpad"

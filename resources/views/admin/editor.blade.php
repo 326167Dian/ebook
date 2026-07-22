@@ -95,6 +95,18 @@
             min-height: 160px;
         }
 
+        .ck-content ol {
+            list-style-type: decimal;
+        }
+
+        .ck-content ol ol {
+            list-style-type: lower-alpha;
+        }
+
+        .ck-content ol ol ol {
+            list-style-type: lower-roman;
+        }
+
         .rich-text-shell {
             padding: 14px;
             border-radius: 16px;
@@ -657,8 +669,18 @@
     <script src="{{ asset('Mobilekit/HTML/assets/js/lib/bootstrap.min.js') }}"></script>
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
     <script src="{{ asset('Mobilekit/HTML/assets/js/base.js') }}"></script>
-    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/super-build/ckeditor.js"></script>
     <script>
+        const ClassicEditor = window.CKEDITOR.ClassicEditor;
+        const CKEDITOR_REMOVE_PLUGINS = [
+            'CKBox', 'CKFinder', 'CKFinderUploadAdapter', 'EasyImage', 'CloudServices',
+            'Comments', 'TrackChanges', 'TrackChangesData',
+            'RealTimeCollaborativeComments', 'RealTimeCollaborativeRevisionHistory', 'RealTimeCollaborativeTrackChanges',
+            'PresenceList', 'RevisionHistory', 'StandardEditingMode',
+            'ExportPdf', 'ExportWord', 'MathType', 'WProofreader', 'Pagination',
+            'DocumentOutline', 'TableOfContents', 'FormatPainter', 'Template', 'SlashCommand',
+            'PasteFromOfficeEnhanced'
+        ];
         const wrapper = document.getElementById('chapters-wrapper');
         const chapterTemplate = document.getElementById('chapter-template');
         const pointTemplate = document.getElementById('point-template');
@@ -943,6 +965,12 @@
             const isRichTextEditor = textarea.classList.contains('rich-text-editor');
             const editorConfig = {
                 extraPlugins: [editorPlugin, fontStylePlugin],
+                removePlugins: CKEDITOR_REMOVE_PLUGINS,
+                list: {
+                    properties: {
+                        styles: true
+                    }
+                },
                 toolbar: isRichTextEditor ? [
                     'heading', '|',
                     'bold', 'italic', 'link', '|',

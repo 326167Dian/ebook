@@ -36,6 +36,18 @@
             color: #fff;
         }
 
+        .ck-content ol {
+            list-style-type: decimal;
+        }
+
+        .ck-content ol ol {
+            list-style-type: lower-alpha;
+        }
+
+        .ck-content ol ol ol {
+            list-style-type: lower-roman;
+        }
+
         .btn-ebook:hover {
             color: #fff;
             background: #2b7fd2;
@@ -254,8 +266,18 @@
     <script src="{{ asset('Mobilekit/HTML/assets/js/lib/bootstrap.min.js') }}"></script>
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
     <script src="{{ asset('Mobilekit/HTML/assets/js/base.js') }}"></script>
-    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/super-build/ckeditor.js"></script>
     <script>
+        const ClassicEditor = window.CKEDITOR.ClassicEditor;
+        const CKEDITOR_REMOVE_PLUGINS = [
+            'CKBox', 'CKFinder', 'CKFinderUploadAdapter', 'EasyImage', 'CloudServices',
+            'Comments', 'TrackChanges', 'TrackChangesData',
+            'RealTimeCollaborativeComments', 'RealTimeCollaborativeRevisionHistory', 'RealTimeCollaborativeTrackChanges',
+            'PresenceList', 'RevisionHistory', 'StandardEditingMode',
+            'ExportPdf', 'ExportWord', 'MathType', 'WProofreader', 'Pagination',
+            'DocumentOutline', 'TableOfContents', 'FormatPainter', 'Template', 'SlashCommand',
+            'PasteFromOfficeEnhanced'
+        ];
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         const uploadUrl = "{{ route('admin.ckeditor.upload') }}";
 
@@ -442,7 +464,13 @@
             ClassicEditor
                 .create(textarea, {
                     extraPlugins: [editorPlugin, fontStylePlugin],
+                    removePlugins: CKEDITOR_REMOVE_PLUGINS,
                     placeholder: 'Tuliskan profil penulis, latar belakang, pengalaman, atau pesan singkat untuk pembaca...',
+                    list: {
+                        properties: {
+                            styles: true
+                        }
+                    },
                     toolbar: [
                         'heading', '|',
                         'bold', 'italic', 'link', '|',
