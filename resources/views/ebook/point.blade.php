@@ -201,28 +201,45 @@
             inset: 0;
             z-index: 2000;
             display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
             background: rgba(10, 18, 28, 0.92);
         }
 
         .image-lightbox.is-open {
-            display: flex;
+            display: block;
         }
 
-        .image-lightbox img {
-            max-width: 100%;
-            max-height: 100%;
+        .image-lightbox-stage {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        .image-lightbox-stage img {
+            position: absolute;
+            left: 0;
+            top: 0;
+            transform-origin: 0 0;
+            will-change: transform;
             border-radius: 10px;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-            cursor: zoom-out;
+            -webkit-user-drag: none;
+            user-select: none;
+        }
+
+        .image-lightbox-stage.is-zoomed img {
+            cursor: grab;
+        }
+
+        .image-lightbox-stage.is-panning img {
+            cursor: grabbing;
         }
 
         .image-lightbox-close {
             position: fixed;
             top: 16px;
             right: 16px;
+            z-index: 2010;
             width: 42px;
             height: 42px;
             border-radius: 999px;
@@ -234,6 +251,21 @@
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        .image-lightbox-hint {
+            position: fixed;
+            left: 50%;
+            bottom: 18px;
+            transform: translateX(-50%);
+            z-index: 2010;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.65);
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 14px;
+            border-radius: 999px;
+            pointer-events: none;
+            white-space: nowrap;
         }
 
         .point-content figure.image {
@@ -640,42 +672,349 @@
 
     <div class="image-lightbox" id="image-lightbox">
         <button type="button" class="image-lightbox-close" id="image-lightbox-close" aria-label="Tutup">&times;</button>
-        <img src="" alt="" id="image-lightbox-img">
+        <div class="image-lightbox-stage" id="image-lightbox-stage">
+            <img src="" alt="" id="image-lightbox-img" draggable="false">
+        </div>
+        <div class="image-lightbox-hint">Cubit untuk zoom &bull; Geser untuk pindah &bull; Ketuk 2x untuk zoom cepat</div>
     </div>
 
     <script src="{{ asset('Mobilekit/HTML/assets/js/lib/bootstrap.min.js') }}"></script>
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
     <script src="{{ asset('Mobilekit/HTML/assets/js/base.js') }}"></script>
     <script>
-        const lightbox = document.getElementById('image-lightbox');
-        const lightboxImg = document.getElementById('image-lightbox-img');
-        const lightboxClose = document.getElementById('image-lightbox-close');
+        (function () {
+            const lightbox = document.getElementById('image-lightbox');
+            const stage = document.getElementById('image-lightbox-stage');
+            const lightboxImg = document.getElementById('image-lightbox-img');
+            const lightboxClose = document.getElementById('image-lightbox-close');
 
-        function openLightbox(src, alt) {
-            lightboxImg.src = src;
-            lightboxImg.alt = alt || '';
-            lightbox.classList.add('is-open');
-            document.body.style.overflow = 'hidden';
-        }
+            const MIN_SCALE = 1;
+            const MAX_SCALE = 4;
+            const DOUBLE_TAP_ZOOM = 3;
+            const DOUBLE_TAP_DELAY = 300;
+            const DOUBLE_TAP_DISTANCE = 36;
+            const TAP_MAX_MOVEMENT = 10;
 
-        function closeLightbox() {
-            lightbox.classList.remove('is-open');
-            lightboxImg.src = '';
-            document.body.style.overflow = '';
-        }
+            let naturalW = 0;
+            let naturalH = 0;
+            let baseScale = 1;
+            let scale = MIN_SCALE;
+            let tx = 0;
+            let ty = 0;
 
-        document.querySelectorAll('.point-content img').forEach((img) => {
-            img.addEventListener('click', () => openLightbox(img.currentSrc || img.src, img.alt));
-        });
+            const activePointers = new Map();
+            let pinchPrevDistance = 0;
+            let isPanning = false;
+            let panLast = { x: 0, y: 0 };
+            let gestureMoved = false;
+            let tapStartPoint = null;
+            let tapStartTarget = null;
+            let lastTapTime = 0;
+            let lastTapPoint = null;
 
-        lightbox.addEventListener('click', closeLightbox);
-        lightboxClose.addEventListener('click', closeLightbox);
+            let rafScheduled = false;
+            let animationFrameId = null;
 
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape') {
-                closeLightbox();
+            function clampScale(value) {
+                return Math.min(MAX_SCALE, Math.max(MIN_SCALE, value));
             }
-        });
+
+            function clampTranslate(txVal, tyVal, scaleVal) {
+                const stageBox = stage.getBoundingClientRect();
+                const finalScale = scaleVal * baseScale;
+                const scaledW = naturalW * finalScale;
+                const scaledH = naturalH * finalScale;
+
+                const clampAxis = (t, scaledSize, stageSize) => {
+                    if (scaledSize <= stageSize) {
+                        return (stageSize - scaledSize) / 2;
+                    }
+                    return Math.min(0, Math.max(stageSize - scaledSize, t));
+                };
+
+                return {
+                    x: clampAxis(txVal, scaledW, stageBox.width),
+                    y: clampAxis(tyVal, scaledH, stageBox.height),
+                };
+            }
+
+            function applyTransform() {
+                lightboxImg.style.transform = `translate(${tx}px, ${ty}px) scale(${scale * baseScale})`;
+                stage.classList.toggle('is-zoomed', scale > MIN_SCALE + 0.01);
+            }
+
+            function scheduleRender() {
+                if (rafScheduled) {
+                    return;
+                }
+                rafScheduled = true;
+                requestAnimationFrame(() => {
+                    rafScheduled = false;
+                    applyTransform();
+                });
+            }
+
+            function setTranslate(newTx, newTy, scaleVal) {
+                const clamped = clampTranslate(newTx, newTy, scaleVal);
+                tx = clamped.x;
+                ty = clamped.y;
+            }
+
+            function computeZoomTarget(clientX, clientY, newScale) {
+                newScale = clampScale(newScale);
+                const stageBox = stage.getBoundingClientRect();
+                const px = clientX - stageBox.left;
+                const py = clientY - stageBox.top;
+                const s0 = scale * baseScale;
+                const s1 = newScale * baseScale;
+                const rawTx = px - (px - tx) * (s1 / s0);
+                const rawTy = py - (py - ty) * (s1 / s0);
+                const clamped = clampTranslate(rawTx, rawTy, newScale);
+                return { scale: newScale, tx: clamped.x, ty: clamped.y };
+            }
+
+            function zoomAt(clientX, clientY, newScale) {
+                const target = computeZoomTarget(clientX, clientY, newScale);
+                scale = target.scale;
+                tx = target.tx;
+                ty = target.ty;
+            }
+
+            function cancelAnimation() {
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+            }
+
+            function animateTo(targetScale, anchorClientX, anchorClientY, duration = 220) {
+                cancelAnimation();
+                const target = computeZoomTarget(anchorClientX, anchorClientY, targetScale);
+                const startScale = scale;
+                const startTx = tx;
+                const startTy = ty;
+                const startTime = performance.now();
+
+                function step(now) {
+                    const elapsed = now - startTime;
+                    const progress = Math.min(1, elapsed / duration);
+                    const eased = 1 - Math.pow(1 - progress, 3);
+
+                    scale = startScale + (target.scale - startScale) * eased;
+                    tx = startTx + (target.tx - startTx) * eased;
+                    ty = startTy + (target.ty - startTy) * eased;
+
+                    applyTransform();
+
+                    if (progress < 1) {
+                        animationFrameId = requestAnimationFrame(step);
+                    } else {
+                        animationFrameId = null;
+                    }
+                }
+
+                animationFrameId = requestAnimationFrame(step);
+            }
+
+            function resetGestureState() {
+                cancelAnimation();
+                activePointers.clear();
+                isPanning = false;
+                pinchPrevDistance = 0;
+                gestureMoved = false;
+                tapStartPoint = null;
+                tapStartTarget = null;
+                lastTapTime = 0;
+                lastTapPoint = null;
+                stage.classList.remove('is-panning', 'is-zoomed');
+            }
+
+            function setupStage() {
+                const stageBox = stage.getBoundingClientRect();
+                baseScale = Math.min(stageBox.width / naturalW, stageBox.height / naturalH, 1);
+                lightboxImg.style.width = naturalW + 'px';
+                lightboxImg.style.height = naturalH + 'px';
+                scale = MIN_SCALE;
+                const centered = clampTranslate(0, 0, scale);
+                tx = centered.x;
+                ty = centered.y;
+                applyTransform();
+            }
+
+            function openLightbox(src, alt) {
+                resetGestureState();
+                naturalW = 0;
+                naturalH = 0;
+
+                lightboxImg.onload = () => {
+                    naturalW = lightboxImg.naturalWidth || 1;
+                    naturalH = lightboxImg.naturalHeight || 1;
+                    setupStage();
+                };
+                lightboxImg.alt = alt || '';
+                lightboxImg.src = src;
+
+                lightbox.classList.add('is-open');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeLightbox() {
+                resetGestureState();
+                lightbox.classList.remove('is-open');
+                lightboxImg.removeAttribute('src');
+                lightboxImg.style.transform = '';
+                lightboxImg.style.width = '';
+                lightboxImg.style.height = '';
+                document.body.style.overflow = '';
+            }
+
+            function getDistance(p1, p2) {
+                return Math.hypot(p1.x - p2.x, p1.y - p2.y);
+            }
+
+            function getMidpoint(p1, p2) {
+                return { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+            }
+
+            function handleTap(x, y, target) {
+                const now = Date.now();
+                const isDoubleTap = lastTapPoint
+                    && (now - lastTapTime) < DOUBLE_TAP_DELAY
+                    && getDistance({ x, y }, lastTapPoint) < DOUBLE_TAP_DISTANCE;
+
+                if (isDoubleTap) {
+                    lastTapTime = 0;
+                    lastTapPoint = null;
+
+                    if (scale > MIN_SCALE + 0.01) {
+                        animateTo(MIN_SCALE, x, y);
+                    } else {
+                        animateTo(DOUBLE_TAP_ZOOM, x, y);
+                    }
+                    return;
+                }
+
+                lastTapTime = now;
+                lastTapPoint = { x, y };
+
+                if (target !== lightboxImg) {
+                    setTimeout(() => {
+                        if (lastTapTime === now) {
+                            closeLightbox();
+                        }
+                    }, DOUBLE_TAP_DELAY);
+                }
+            }
+
+            stage.addEventListener('pointerdown', (event) => {
+                stage.setPointerCapture(event.pointerId);
+                activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+                gestureMoved = false;
+                tapStartPoint = { x: event.clientX, y: event.clientY };
+                tapStartTarget = event.target;
+                cancelAnimation();
+
+                if (activePointers.size === 2) {
+                    isPanning = false;
+                    const pts = Array.from(activePointers.values());
+                    pinchPrevDistance = getDistance(pts[0], pts[1]);
+                } else if (activePointers.size === 1) {
+                    isPanning = true;
+                    panLast = { x: event.clientX, y: event.clientY };
+                    stage.classList.add('is-panning');
+                }
+            });
+
+            stage.addEventListener('pointermove', (event) => {
+                if (!activePointers.has(event.pointerId)) {
+                    return;
+                }
+                activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+                if (tapStartPoint) {
+                    const moved = getDistance({ x: event.clientX, y: event.clientY }, tapStartPoint);
+                    if (moved > TAP_MAX_MOVEMENT) {
+                        gestureMoved = true;
+                    }
+                }
+
+                if (activePointers.size === 2) {
+                    const pts = Array.from(activePointers.values());
+                    const newDistance = getDistance(pts[0], pts[1]);
+                    const mid = getMidpoint(pts[0], pts[1]);
+
+                    if (pinchPrevDistance > 0) {
+                        const ratio = newDistance / pinchPrevDistance;
+                        zoomAt(mid.x, mid.y, clampScale(scale * ratio));
+                    }
+                    pinchPrevDistance = newDistance;
+                    scheduleRender();
+                } else if (activePointers.size === 1 && isPanning && scale > MIN_SCALE + 0.001) {
+                    const dx = event.clientX - panLast.x;
+                    const dy = event.clientY - panLast.y;
+                    panLast = { x: event.clientX, y: event.clientY };
+                    setTranslate(tx + dx, ty + dy, scale);
+                    scheduleRender();
+                }
+            });
+
+            function onPointerEnd(event) {
+                activePointers.delete(event.pointerId);
+                try {
+                    stage.releasePointerCapture(event.pointerId);
+                } catch (error) {
+                    // ignore
+                }
+
+                if (activePointers.size === 1) {
+                    const remaining = Array.from(activePointers.values())[0];
+                    panLast = remaining;
+                    isPanning = true;
+                    pinchPrevDistance = 0;
+                } else if (activePointers.size === 0) {
+                    isPanning = false;
+                    stage.classList.remove('is-panning');
+
+                    if (!gestureMoved && tapStartPoint) {
+                        handleTap(tapStartPoint.x, tapStartPoint.y, tapStartTarget);
+                    }
+                    tapStartPoint = null;
+                    tapStartTarget = null;
+                }
+            }
+
+            stage.addEventListener('pointerup', onPointerEnd);
+            stage.addEventListener('pointercancel', onPointerEnd);
+
+            stage.addEventListener('wheel', (event) => {
+                if (!event.ctrlKey) {
+                    return;
+                }
+                event.preventDefault();
+                cancelAnimation();
+                const zoomFactor = Math.exp(-event.deltaY * 0.01);
+                zoomAt(event.clientX, event.clientY, clampScale(scale * zoomFactor));
+                scheduleRender();
+            }, { passive: false });
+
+            window.addEventListener('resize', () => {
+                if (lightbox.classList.contains('is-open') && naturalW && naturalH) {
+                    setupStage();
+                }
+            });
+
+            document.querySelectorAll('.point-content img').forEach((img) => {
+                img.addEventListener('click', () => openLightbox(img.currentSrc || img.src, img.alt));
+            });
+
+            lightboxClose.addEventListener('click', closeLightbox);
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    closeLightbox();
+                }
+            });
+        })();
     </script>
 </body>
 
