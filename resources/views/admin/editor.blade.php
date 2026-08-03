@@ -981,6 +981,7 @@
                     'heading', '|',
                     'imageUpload',
                     'bold', 'italic', 'link', '|',
+                    'alignment', '|',
                     'bulletedList', 'numberedList', '|',
                     'blockQuote', 'undo', 'redo'
                 ]
