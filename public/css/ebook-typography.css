@@ -59,3 +59,10 @@
 .rich-content ol ol ol {
     list-style-type: lower-roman;
 }
+
+.point-content a,
+.rich-content a {
+    color: var(--ebook-primary, #1e5fae);
+    text-decoration: underline;
+    word-break: break-word;
+}

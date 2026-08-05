@@ -587,6 +587,7 @@
                             '/uploads/ebook-editor/',
                             $normalizedPointContent
                         );
+                        $normalizedPointContent = \App\Support\ContentLinkifier::linkify($normalizedPointContent);
                     @endphp
 
                     @if ($normalizedPointContent !== '')
