@@ -72,8 +72,9 @@
             @endif
 
             <div class="price-note mb-3">
-                Upload bukti transfer sebesar <del>Rp. 250.000 </del><strong>Rp. 99.000</strong>.<Br>
-                ke Rek BCA 1391928130 a/n eneng siti wulandari<br>
+                Upload bukti transfer sebesar <del>Rp. {{ number_format($content->payment_price_original, 0, ',', '.') }}</del> <strong>Rp. {{ number_format($content->payment_price_final, 0, ',', '.') }}</strong>.<br>
+                Ke No Rekening berikut ini<br>
+                <strong>{{ $content->payment_bank_name }} {{ $content->payment_bank_account_number }} a/n {{ $content->payment_bank_account_holder }}</strong><br>
                 Akun akan aktif setelah diverifikasi admin.
             </div>
 

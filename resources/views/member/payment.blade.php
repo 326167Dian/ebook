@@ -73,7 +73,12 @@
             <div class="status-note mb-3">
                 <div><strong>Member:</strong> {{ $member->name }}</div>
                 <div><strong>Email:</strong> {{ $member->email }}</div>
-                <div class="mt-2">Upload bukti transfer sebesar <del>Rp. 250.000</del> <strong>Rp. 99.000</strong>. Admin akan verifikasi sebelum akses penuh dibuka.</div>
+                <div class="mt-2">
+                    Upload bukti transfer sebesar <del>Rp. {{ number_format($content->payment_price_original, 0, ',', '.') }}</del> <strong>Rp. {{ number_format($content->payment_price_final, 0, ',', '.') }}</strong>.<br>
+                    Ke No Rekening berikut ini<br>
+                    <strong>{{ $content->payment_bank_name }} {{ $content->payment_bank_account_number }} a/n {{ $content->payment_bank_account_holder }}</strong><br>
+                    {{ $content->payment_note }}
+                </div>
             </div>
 
             @if (!empty($member->payment_proof_path))

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EbookContent;
 use App\Models\Member;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -114,6 +115,7 @@ class MemberAuthController extends Controller
 
         return view('member.payment', [
             'member' => $member,
+            'content' => EbookContent::query()->firstOrCreate([], EbookContent::defaultData()),
         ]);
     }
 
@@ -150,7 +152,9 @@ class MemberAuthController extends Controller
 
     public function showRegister()
     {
-        return view('member.register');
+        return view('member.register', [
+            'content' => EbookContent::query()->firstOrCreate([], EbookContent::defaultData()),
+        ]);
     }
 
     public function showForgotPassword()

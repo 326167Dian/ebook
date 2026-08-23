@@ -20,7 +20,12 @@ class EbookEditorController extends Controller
         $approvedMembers = collect();
 
         if (Schema::hasTable('members')) {
-            $pendingMembers = Member::query()->where('is_active', false)->latest()->get();
+            $pendingMembers = Member::query()
+                ->where('is_active', false)
+                ->whereNotNull('payment_proof_path')
+                ->where('payment_proof_path', '!=', '')
+                ->latest()
+                ->get();
             $approvedMembers = Member::query()->where('is_active', true)->latest()->limit(20)->get();
         }
 
@@ -39,6 +44,12 @@ class EbookEditorController extends Controller
             'hero_description' => ['required', 'string'],
             'cover_image' => ['nullable', 'string', 'max:255'],
             'cover_upload' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'payment_price_original' => ['required', 'integer', 'min:0'],
+            'payment_price_final' => ['required', 'integer', 'min:0'],
+            'payment_note' => ['required', 'string', 'max:255'],
+            'payment_bank_name' => ['required', 'string', 'max:80'],
+            'payment_bank_account_number' => ['required', 'string', 'max:50'],
+            'payment_bank_account_holder' => ['required', 'string', 'max:120'],
             'theme_primary' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'theme_secondary' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'theme_accent' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
@@ -194,6 +205,12 @@ class EbookEditorController extends Controller
             'theme_bg_end' => $data['theme_bg_end'],
             'theme_text' => $data['theme_text'],
             'chapters' => $chapters,
+            'payment_price_original' => $data['payment_price_original'],
+            'payment_price_final' => $data['payment_price_final'],
+            'payment_note' => $data['payment_note'],
+            'payment_bank_name' => $data['payment_bank_name'],
+            'payment_bank_account_number' => $data['payment_bank_account_number'],
+            'payment_bank_account_holder' => $data['payment_bank_account_holder'],
         ]);
 
         return redirect()->route('admin.editor')->with('status', 'Konten eBook berhasil diperbarui.');

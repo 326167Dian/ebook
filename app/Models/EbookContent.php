@@ -25,12 +25,20 @@ class EbookContent extends Model
         'theme_bg_end',
         'theme_text',
         'chapters',
+        'payment_price_original',
+        'payment_price_final',
+        'payment_note',
+        'payment_bank_name',
+        'payment_bank_account_number',
+        'payment_bank_account_holder',
     ];
 
     protected function casts(): array
     {
         return [
             'chapters' => 'array',
+            'payment_price_original' => 'integer',
+            'payment_price_final' => 'integer',
         ];
     }
 
@@ -50,6 +58,12 @@ class EbookContent extends Model
             'theme_bg_start' => '#f7fcff',
             'theme_bg_end' => '#dcebfa',
             'theme_text' => '#16314f',
+            'payment_price_original' => 250000,
+            'payment_price_final' => 99000,
+            'payment_note' => 'Admin akan verifikasi sebelum akses penuh dibuka.',
+            'payment_bank_name' => 'BCA',
+            'payment_bank_account_number' => '1391928130',
+            'payment_bank_account_holder' => 'Eneng Siti Wulandari',
             'chapters' => [
                 [
                     'title' => 'Mindset Bisnis Apotek',
