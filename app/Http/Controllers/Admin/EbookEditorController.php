@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\EbookContent;
 use App\Models\Member;
+use App\Models\PointVisit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -29,10 +30,15 @@ class EbookEditorController extends Controller
             $approvedMembers = Member::query()->where('is_active', true)->latest()->limit(20)->get();
         }
 
+        $pointVisits = Schema::hasTable('point_visits')
+            ? PointVisit::query()->orderByDesc('visit_count')->get()
+            : collect();
+
         return view('admin.editor', [
             'content' => $content,
             'pendingMembers' => $pendingMembers,
             'approvedMembers' => $approvedMembers,
+            'pointVisits' => $pointVisits,
         ]);
     }
 

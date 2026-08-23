@@ -800,6 +800,10 @@
                 </div>
             </div>
         @endif
+
+        <div class="section mt-4 text-center">
+            <small class="text-muted">Total pengunjung website: {{ number_format($totalVisits ?? 0, 0, ',', '.') }}</small>
+        </div>
     </div>
 
     <script src="{{ asset('Mobilekit/HTML/assets/js/lib/bootstrap.min.js') }}"></script>

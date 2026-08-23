@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\EbookContent;
 use App\Models\Member;
 use App\Models\PharmacyLogo;
+use App\Models\PointVisit;
+use App\Models\SiteVisit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
@@ -42,12 +44,15 @@ class EbookController extends Controller
             $pharmacyLogos = PharmacyLogo::query()->orderBy('sort_order')->orderBy('id')->get();
         }
 
+        $totalVisits = $this->trackVisit($request);
+
         return view('ebook.index', [
             'covers' => $covers,
             'content' => $content,
             'isMember' => $member !== null,
             'memberName' => $member?->name,
             'pharmacyLogos' => $pharmacyLogos,
+            'totalVisits' => $totalVisits,
         ]);
     }
 
@@ -96,6 +101,8 @@ class EbookController extends Controller
         $pointNumber = $currentIndex !== false ? $currentIndex + 1 : null;
         $totalPoints = count($readablePoints);
         $youtubeEmbedUrl = $this->resolveYoutubeEmbedUrl((string) ($selectedPoint['youtube_url'] ?? ''));
+        $this->trackVisit($request);
+        $this->trackPointVisit($request, $slug, (string) ($selectedPoint['title'] ?? $slug));
 
         return view('ebook.point', [
             'content' => $content,
@@ -148,6 +155,37 @@ class EbookController extends Controller
         }
 
         return 'https://www.youtube.com/embed/' . $videoId;
+    }
+
+    private function trackVisit(Request $request): int
+    {
+        $siteVisit = SiteVisit::query()->firstOrCreate([], ['total_visits' => 0]);
+
+        if (! $request->session()->get('site_visit_counted')) {
+            $siteVisit->increment('total_visits');
+            $request->session()->put('site_visit_counted', true);
+        }
+
+        return $siteVisit->total_visits;
+    }
+
+    private function trackPointVisit(Request $request, string $slug, string $title): void
+    {
+        $pointVisit = PointVisit::query()->firstOrCreate(
+            ['slug' => $slug],
+            ['title' => $title, 'visit_count' => 0]
+        );
+
+        if ($pointVisit->title !== $title) {
+            $pointVisit->update(['title' => $title]);
+        }
+
+        $sessionKey = 'point_visit_counted_' . $slug;
+
+        if (! $request->session()->get($sessionKey)) {
+            $pointVisit->increment('visit_count');
+            $request->session()->put($sessionKey, true);
+        }
     }
 
     private function resolveActiveMember(Request $request): ?Member

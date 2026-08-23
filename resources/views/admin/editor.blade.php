@@ -356,6 +356,34 @@
                 @endif
 
                 <div class="mb-4">
+                    <h3 class="mb-2">Statistik Pengunjung</h3>
+                    <p class="text-secondary mb-2">Kunjungan per poin konten, diurutkan dari yang paling sering dibuka (dihitung unik per sesi).</p>
+
+                    @if (($pointVisits ?? collect())->isEmpty())
+                        <div class="alert alert-light border">Belum ada data kunjungan per poin konten.</div>
+                    @else
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Poin Konten</th>
+                                        <th class="text-end">Jumlah Kunjungan</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($pointVisits as $pointVisit)
+                                        <tr>
+                                            <td>{{ $pointVisit->title }}</td>
+                                            <td class="text-end">{{ number_format($pointVisit->visit_count, 0, ',', '.') }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+
+                <div class="mb-4">
                     <h3 class="mb-2">Moderasi Member</h3>
                     <p class="text-secondary mb-2">Approve pendaftar setelah bukti transfer Rp. {{ number_format($content->payment_price_final, 0, ',', '.') }} sesuai. Pendaftar yang belum upload bukti transfer tidak ditampilkan di sini.</p>
 
