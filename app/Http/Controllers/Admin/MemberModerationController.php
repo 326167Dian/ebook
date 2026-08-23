@@ -12,6 +12,7 @@ class MemberModerationController extends Controller
         $member->update([
             'is_active' => true,
             'paid_at' => $member->paid_at ?? now(),
+            'payment_rejected_at' => null,
         ]);
 
         return back()->with('status', 'Member berhasil di-approve dan bisa mengakses e-book.');
@@ -21,6 +22,7 @@ class MemberModerationController extends Controller
     {
         $member->update([
             'is_active' => false,
+            'payment_rejected_at' => now(),
         ]);
 
         return back()->with('status', 'Member ditandai belum aktif.');

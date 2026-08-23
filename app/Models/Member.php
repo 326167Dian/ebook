@@ -24,6 +24,7 @@ class Member extends Model implements CanResetPasswordContract
         'payment_proof_path',
         'is_active',
         'paid_at',
+        'payment_rejected_at',
     ];
 
     protected $hidden = [
@@ -36,6 +37,7 @@ class Member extends Model implements CanResetPasswordContract
             'password' => 'hashed',
             'is_active' => 'boolean',
             'paid_at' => 'datetime',
+            'payment_rejected_at' => 'datetime',
         ];
     }
 

@@ -82,13 +82,22 @@
             </div>
 
             @if (!empty($member->payment_proof_path))
-                <div class="alert alert-info mb-3">
-                        Bukti pembayaran sudah pernah diupload. tapi tidak sesuai, Anda bisa
-                        upload ulang dengan bukti bayar yang sesuai
-                    <div class="mt-2">
-                        <a href="{{ asset($member->payment_proof_path) }}" target="_blank" rel="noopener">Lihat bukti yang sudah diupload</a>
+                @if (!empty($member->payment_rejected_at))
+                    <div class="alert alert-danger mb-3">
+                        Bukti pembayaran sebelumnya ditolak admin karena tidak sesuai. Silakan
+                        upload ulang dengan bukti bayar yang sesuai.
+                        <div class="mt-2">
+                            <a href="{{ asset($member->payment_proof_path) }}" target="_blank" rel="noopener">Lihat bukti yang sudah diupload</a>
+                        </div>
                     </div>
-                </div>
+                @else
+                    <div class="alert alert-info mb-3">
+                        Bukti pembayaran sudah dikirim dan sedang menunggu verifikasi admin.
+                        <div class="mt-2">
+                            <a href="{{ asset($member->payment_proof_path) }}" target="_blank" rel="noopener">Lihat bukti yang sudah diupload</a>
+                        </div>
+                    </div>
+                @endif
             @endif
 
             <form method="POST" action="{{ route('member.payment.submit') }}" enctype="multipart/form-data">

@@ -143,6 +143,7 @@ class MemberAuthController extends Controller
             'payment_proof_path' => 'storage-public/uploads/payment-proofs/' . $fileName,
             'is_active' => false,
             'paid_at' => null,
+            'payment_rejected_at' => null,
         ])->save();
 
         return redirect()
