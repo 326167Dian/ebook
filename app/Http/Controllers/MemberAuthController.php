@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use RuntimeException;
 use Throwable;
 
@@ -133,6 +134,15 @@ class MemberAuthController extends Controller
 
         $data = $request->validate([
             'payment_proof' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'referral_code' => [
+                'required',
+                'integer',
+                Rule::exists('reseller', 'id_reseller')->where(fn ($query) => $query->where('is_active', true)),
+            ],
+        ], [
+            'referral_code.required' => 'Kode referral wajib diisi.',
+            'referral_code.integer' => 'Kode referral tidak valid, silakan masukkan kode yang benar.',
+            'referral_code.exists' => 'Kode referral tidak ditemukan, silakan masukkan kode yang benar.',
         ]);
 
         $proofFile = $data['payment_proof'];
@@ -144,6 +154,7 @@ class MemberAuthController extends Controller
             'is_active' => false,
             'paid_at' => null,
             'payment_rejected_at' => null,
+            'id_reseller' => $data['referral_code'],
         ])->save();
 
         return redirect()
@@ -217,6 +228,15 @@ class MemberAuthController extends Controller
             'email' => ['required', 'email', 'max:150', 'unique:members,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'payment_proof' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'referral_code' => [
+                'required',
+                'integer',
+                Rule::exists('reseller', 'id_reseller')->where(fn ($query) => $query->where('is_active', true)),
+            ],
+        ], [
+            'referral_code.required' => 'Kode referral wajib diisi.',
+            'referral_code.integer' => 'Kode referral tidak valid, silakan masukkan kode yang benar.',
+            'referral_code.exists' => 'Kode referral tidak ditemukan, silakan masukkan kode yang benar.',
         ]);
 
         $proofFile = $request->file('payment_proof');
@@ -231,6 +251,7 @@ class MemberAuthController extends Controller
             'payment_proof_path' => 'storage-public/uploads/payment-proofs/' . $fileName,
             'is_active' => false,
             'paid_at' => null,
+            'id_reseller' => $data['referral_code'],
         ]);
 
         return redirect()->route('member.login')->with('status', 'Registrasi berhasil. Akun Anda akan aktif setelah bukti transfer diverifikasi admin.');

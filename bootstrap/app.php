@@ -4,6 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\EnsureMemberAccess;
+use App\Http\Middleware\EnsureResellerAccess;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo('/yusuf/login');
         $middleware->alias([
             'member.access' => EnsureMemberAccess::class,
+            'reseller.access' => EnsureResellerAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

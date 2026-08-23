@@ -443,6 +443,64 @@
                     @endif
                 </div>
 
+                <div class="mb-4">
+                    <h3 class="mb-2">Approval Reseller</h3>
+                    <p class="text-secondary mb-2">Setujui pendaftar reseller agar bisa login dan melihat member yang bergabung lewat kode referalnya.</p>
+
+                    @if (($pendingResellers ?? collect())->isEmpty())
+                        <div class="alert alert-light border">Tidak ada pendaftar reseller yang menunggu persetujuan.</div>
+                    @else
+                        @foreach ($pendingResellers as $reseller)
+                            <div class="member-approval-card">
+                                <div><strong>{{ $reseller->nm_reseller }}</strong> (username: {{ $reseller->username }})</div>
+                                <div class="small text-muted">Telp: {{ $reseller->telp }}</div>
+                                <div class="small text-muted">Bank: {{ $reseller->bank }} - {{ $reseller->rekening }}</div>
+                                <div class="small text-muted">Daftar: {{ optional($reseller->created_at)->format('d M Y H:i') }}</div>
+
+                                <div class="member-approval-actions">
+                                    <form method="POST" action="{{ route('admin.resellers.approve', $reseller) }}">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                                    </form>
+                                    <form method="POST" action="{{ route('admin.resellers.reject', $reseller) }}">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Tolak</button>
+                                    </form>
+                                </div>
+                            </div>
+                        @endforeach
+                    @endif
+
+                    @if (($approvedResellers ?? collect())->isNotEmpty())
+                        <div class="mt-3">
+                            <h4 class="mb-2">Reseller Aktif Terbaru</h4>
+                            <div class="table-responsive">
+                                <table class="table table-sm align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Nama</th>
+                                            <th>Username</th>
+                                            <th>Telp</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($approvedResellers as $reseller)
+                                            <tr>
+                                                <td>{{ $reseller->id_reseller }}</td>
+                                                <td>{{ $reseller->nm_reseller }}</td>
+                                                <td>{{ $reseller->username }}</td>
+                                                <td>{{ $reseller->telp }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            <small class="text-muted d-block mt-1">ID di atas adalah Kode Referral yang bisa dibagikan reseller ke calon member.</small>
+                        </div>
+                    @endif
+                </div>
+
                 <form method="POST" action="{{ route('admin.editor.update') }}" id="editor-form" enctype="multipart/form-data">
                     @csrf
 

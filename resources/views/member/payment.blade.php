@@ -110,6 +110,13 @@
                     <small class="text-muted d-block mt-1">Format gambar: JPG, JPEG, PNG, WEBP. Maksimal 5MB.</small>
                 </div>
 
+                <div class="form-group boxed mt-2">
+                    <div class="input-wrapper">
+                        <input type="text" inputmode="numeric" class="form-control" name="referral_code" placeholder="Kode Referral" value="{{ old('referral_code') }}" required>
+                    </div>
+                    <small class="text-muted d-block mt-1">Wajib diisi dengan kode referral dari reseller yang mengajak Anda.</small>
+                </div>
+
                 <button type="submit" class="btn btn-ebook btn-block mt-3">Kirim Bukti Pembayaran</button>
             </form>
 

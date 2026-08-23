@@ -6,8 +6,10 @@ use App\Http\Controllers\Admin\EbookEditorController;
 use App\Http\Controllers\Admin\FooterEditorController;
 use App\Http\Controllers\Admin\MemberModerationController;
 use App\Http\Controllers\Admin\PharmacyLogoController;
+use App\Http\Controllers\Admin\ResellerModerationController;
 use App\Http\Controllers\EbookController;
 use App\Http\Controllers\MemberAuthController;
+use App\Http\Controllers\ResellerAuthController;
 use App\Http\Controllers\StoragePublicFileController;
 use Illuminate\Support\Facades\Route;
 
@@ -37,6 +39,19 @@ Route::get('/storage-public/{path}', [StoragePublicFileController::class, 'show'
     ->where('path', '.*')
     ->name('storage.public.show');
 
+Route::prefix('reseller')->name('reseller.')->group(function () {
+    Route::get('/login', [ResellerAuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [ResellerAuthController::class, 'login'])->name('login.submit');
+    Route::get('/register', [ResellerAuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [ResellerAuthController::class, 'register'])->name('register.submit');
+    Route::post('/logout', [ResellerAuthController::class, 'logout'])->name('logout');
+    Route::get('/pending', [ResellerAuthController::class, 'showPending'])->name('pending');
+
+    Route::middleware('reseller.access')->group(function () {
+        Route::get('/', [ResellerAuthController::class, 'dashboard'])->name('dashboard');
+    });
+});
+
 Route::middleware('guest')->group(function () {
     Route::get('/yusuf/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');
     Route::post('/yusuf/login', [AdminAuthController::class, 'login'])->name('admin.login.submit');
@@ -51,6 +66,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/admin', [EbookEditorController::class, 'update'])->name('admin.editor.update');
     Route::post('/admin/members/{member}/approve', [MemberModerationController::class, 'approve'])->name('admin.members.approve');
     Route::post('/admin/members/{member}/reject', [MemberModerationController::class, 'reject'])->name('admin.members.reject');
+    Route::post('/admin/resellers/{reseller}/approve', [ResellerModerationController::class, 'approve'])->name('admin.resellers.approve');
+    Route::post('/admin/resellers/{reseller}/reject', [ResellerModerationController::class, 'reject'])->name('admin.resellers.reject');
     Route::get('/admin/footer', [FooterEditorController::class, 'edit'])->name('admin.footer.edit');
     Route::post('/admin/footer', [FooterEditorController::class, 'update'])->name('admin.footer.update');
     Route::post('/admin/pharmacy-logos', [PharmacyLogoController::class, 'store'])->name('admin.pharmacy-logos.store');

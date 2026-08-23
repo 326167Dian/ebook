@@ -25,6 +25,7 @@ class Member extends Model implements CanResetPasswordContract
         'is_active',
         'paid_at',
         'payment_rejected_at',
+        'id_reseller',
     ];
 
     protected $hidden = [

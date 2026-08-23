@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\EbookContent;
 use App\Models\Member;
 use App\Models\PointVisit;
+use App\Models\Reseller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -34,11 +35,21 @@ class EbookEditorController extends Controller
             ? PointVisit::query()->orderByDesc('visit_count')->get()
             : collect();
 
+        $pendingResellers = collect();
+        $approvedResellers = collect();
+
+        if (Schema::hasTable('reseller')) {
+            $pendingResellers = Reseller::query()->where('is_active', false)->latest()->get();
+            $approvedResellers = Reseller::query()->where('is_active', true)->latest()->limit(20)->get();
+        }
+
         return view('admin.editor', [
             'content' => $content,
             'pendingMembers' => $pendingMembers,
             'approvedMembers' => $approvedMembers,
             'pointVisits' => $pointVisits,
+            'pendingResellers' => $pendingResellers,
+            'approvedResellers' => $approvedResellers,
         ]);
     }
 
