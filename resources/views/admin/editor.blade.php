@@ -553,6 +553,10 @@
                         <ion-icon name="color-palette-outline"></ion-icon>
                         <span>Pengaturan Warna Front End</span>
                     </a>
+                    <a href="{{ route('admin.payment.edit') }}" class="admin-side-menu-link">
+                        <ion-icon name="card-outline"></ion-icon>
+                        <span>Pengaturan Pembayaran</span>
+                    </a>
                 </nav>
             </aside>
             <div class="admin-side-menu-backdrop" id="adminSideMenuBackdrop"></div>
@@ -697,50 +701,6 @@
 
                     <div class="section-save-actions">
                         <button type="submit" class="btn btn-ebook">Simpan Section Konten</button>
-                    </div>
-
-                    <hr class="mt-4 mb-3">
-
-                    <h3 class="mb-2">Pengaturan Pembayaran</h3>
-                    <p class="text-secondary mb-3">Atur harga dan keterangan yang tampil di halaman registrasi &amp; verifikasi pembayaran member.</p>
-
-                    <div class="row g-2">
-                        <div class="col-md-6">
-                            <label class="form-label">Harga Awal (Rp)</label>
-                            <input type="number" min="0" class="form-control" name="payment_price_original" value="{{ old('payment_price_original', $content->payment_price_original) }}" required>
-                            <small class="text-muted d-block mt-1">Ditampilkan tercoret sebagai harga sebelum diskon.</small>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Harga Setelah Diskon (Rp)</label>
-                            <input type="number" min="0" class="form-control" name="payment_price_final" value="{{ old('payment_price_final', $content->payment_price_final) }}" required>
-                            <small class="text-muted d-block mt-1">Harga yang harus ditransfer member.</small>
-                        </div>
-                    </div>
-
-                    <div class="row g-2 mt-1">
-                        <div class="col-md-4">
-                            <label class="form-label">Nama Bank</label>
-                            <input type="text" class="form-control" name="payment_bank_name" maxlength="80" value="{{ old('payment_bank_name', $content->payment_bank_name) }}" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Nomor Rekening</label>
-                            <input type="text" class="form-control" name="payment_bank_account_number" maxlength="50" value="{{ old('payment_bank_account_number', $content->payment_bank_account_number) }}" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Atas Nama</label>
-                            <input type="text" class="form-control" name="payment_bank_account_holder" maxlength="120" value="{{ old('payment_bank_account_holder', $content->payment_bank_account_holder) }}" required>
-                        </div>
-                        <small class="text-muted d-block mt-1">Ditampilkan sebagai nomor rekening tujuan transfer di halaman registrasi &amp; verifikasi pembayaran.</small>
-                    </div>
-
-                    <div class="form-group mt-3">
-                        <label class="form-label">Keterangan Pembayaran</label>
-                        <input type="text" class="form-control" name="payment_note" maxlength="255" value="{{ old('payment_note', $content->payment_note) }}" required>
-                        <small class="text-muted d-block mt-1">Kalimat yang tampil setelah harga di halaman verifikasi pembayaran.</small>
-                    </div>
-
-                    <div class="section-save-actions">
-                        <button type="submit" class="btn btn-ebook">Simpan Section Pembayaran</button>
                     </div>
 
                     <hr class="mt-4 mb-3">

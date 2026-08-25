@@ -101,6 +101,32 @@ class EbookEditorController extends Controller
         return redirect()->route('admin.theme.edit')->with('status', 'Tema warna frontend berhasil diperbarui.');
     }
 
+    public function editPayment()
+    {
+        $content = EbookContent::query()->firstOrCreate([], EbookContent::defaultData());
+
+        return view('admin.payment', [
+            'content' => $content,
+        ]);
+    }
+
+    public function updatePayment(Request $request)
+    {
+        $data = $request->validate([
+            'payment_price_original' => ['required', 'integer', 'min:0'],
+            'payment_price_final' => ['required', 'integer', 'min:0'],
+            'payment_note' => ['required', 'string', 'max:255'],
+            'payment_bank_name' => ['required', 'string', 'max:80'],
+            'payment_bank_account_number' => ['required', 'string', 'max:50'],
+            'payment_bank_account_holder' => ['required', 'string', 'max:120'],
+        ]);
+
+        $content = EbookContent::query()->firstOrCreate([], EbookContent::defaultData());
+        $content->update($data);
+
+        return redirect()->route('admin.payment.edit')->with('status', 'Pengaturan pembayaran berhasil diperbarui.');
+    }
+
     public function update(Request $request)
     {
         $data = $request->validate([
@@ -109,12 +135,6 @@ class EbookEditorController extends Controller
             'hero_description' => ['required', 'string'],
             'cover_image' => ['nullable', 'string', 'max:255'],
             'cover_upload' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
-            'payment_price_original' => ['required', 'integer', 'min:0'],
-            'payment_price_final' => ['required', 'integer', 'min:0'],
-            'payment_note' => ['required', 'string', 'max:255'],
-            'payment_bank_name' => ['required', 'string', 'max:80'],
-            'payment_bank_account_number' => ['required', 'string', 'max:50'],
-            'payment_bank_account_holder' => ['required', 'string', 'max:120'],
             'chapters' => ['required', 'array', 'min:1'],
             'chapters.*.title' => ['required', 'string', 'max:255'],
             'chapters.*.items' => ['required', 'array', 'min:1'],
@@ -258,12 +278,6 @@ class EbookEditorController extends Controller
             'hero_description' => $data['hero_description'],
             'cover_image' => $coverImagePath,
             'chapters' => $chapters,
-            'payment_price_original' => $data['payment_price_original'],
-            'payment_price_final' => $data['payment_price_final'],
-            'payment_note' => $data['payment_note'],
-            'payment_bank_name' => $data['payment_bank_name'],
-            'payment_bank_account_number' => $data['payment_bank_account_number'],
-            'payment_bank_account_holder' => $data['payment_bank_account_holder'],
         ]);
 
         return redirect()->route('admin.editor')->with('status', 'Konten eBook berhasil diperbarui.');

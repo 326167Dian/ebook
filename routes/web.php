@@ -69,6 +69,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/daftar-reseller', [EbookEditorController::class, 'resellers'])->name('admin.resellers.index');
     Route::get('/admin/tema-warna', [EbookEditorController::class, 'editTheme'])->name('admin.theme.edit');
     Route::post('/admin/tema-warna', [EbookEditorController::class, 'updateTheme'])->name('admin.theme.update');
+    Route::get('/admin/pengaturan-pembayaran', [EbookEditorController::class, 'editPayment'])->name('admin.payment.edit');
+    Route::post('/admin/pengaturan-pembayaran', [EbookEditorController::class, 'updatePayment'])->name('admin.payment.update');
     Route::post('/admin/members/{member}/approve', [MemberModerationController::class, 'approve'])->name('admin.members.approve');
     Route::post('/admin/members/{member}/reject', [MemberModerationController::class, 'reject'])->name('admin.members.reject');
     Route::post('/admin/resellers/{reseller}/approve', [ResellerModerationController::class, 'approve'])->name('admin.resellers.approve');
