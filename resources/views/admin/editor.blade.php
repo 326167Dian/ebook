@@ -359,7 +359,10 @@
                 @endif
 
                 <div class="mb-4">
-                    <h3 class="mb-2">Moderasi Member</h3>
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+                        <h3 class="mb-0">Moderasi Member</h3>
+                        <a href="{{ route('admin.members.index') }}" class="btn btn-outline-primary">Daftar Member</a>
+                    </div>
                     <p class="text-secondary mb-2">Approve pendaftar setelah bukti transfer Rp. {{ number_format($content->payment_price_final, 0, ',', '.') }} sesuai. Pendaftar yang belum upload bukti transfer tidak ditampilkan di sini.</p>
 
                     @if (($pendingMembers ?? collect())->isEmpty())
@@ -389,32 +392,6 @@
                                 </div>
                             </div>
                         @endforeach
-                    @endif
-
-                    @if (($approvedMembers ?? collect())->isNotEmpty())
-                        <div class="mt-3">
-                            <h4 class="mb-2">Member Aktif Terbaru</h4>
-                            <div class="table-responsive">
-                                <table class="table table-sm align-middle">
-                                    <thead>
-                                        <tr>
-                                            <th>Nama</th>
-                                            <th>Email</th>
-                                            <th>Aktif Sejak</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($approvedMembers as $member)
-                                            <tr>
-                                                <td>{{ $member->name }}</td>
-                                                <td>{{ $member->email }}</td>
-                                                <td>{{ optional($member->updated_at)->format('d M Y H:i') }}</td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
                     @endif
                 </div>
 

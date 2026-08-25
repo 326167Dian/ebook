@@ -19,7 +19,6 @@ class EbookEditorController extends Controller
         $content = EbookContent::query()->firstOrCreate([], EbookContent::defaultData());
         $content->chapters = EbookContent::normalizeChapters($content->chapters ?? []);
         $pendingMembers = collect();
-        $approvedMembers = collect();
 
         if (Schema::hasTable('members')) {
             $pendingMembers = Member::query()
@@ -28,7 +27,6 @@ class EbookEditorController extends Controller
                 ->where('payment_proof_path', '!=', '')
                 ->latest()
                 ->get();
-            $approvedMembers = Member::query()->where('is_active', true)->latest()->limit(20)->get();
         }
 
         $pendingResellers = collect();
@@ -42,7 +40,6 @@ class EbookEditorController extends Controller
         return view('admin.editor', [
             'content' => $content,
             'pendingMembers' => $pendingMembers,
-            'approvedMembers' => $approvedMembers,
             'pendingResellers' => $pendingResellers,
             'approvedResellers' => $approvedResellers,
         ]);
@@ -56,6 +53,17 @@ class EbookEditorController extends Controller
 
         return view('admin.stats', [
             'pointVisits' => $pointVisits,
+        ]);
+    }
+
+    public function members()
+    {
+        $approvedMembers = Schema::hasTable('members')
+            ? Member::query()->where('is_active', true)->latest()->get()
+            : collect();
+
+        return view('admin.members', [
+            'approvedMembers' => $approvedMembers,
         ]);
     }
 
