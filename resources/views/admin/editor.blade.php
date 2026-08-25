@@ -417,22 +417,21 @@
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                align-self: flex-start;
-                position: sticky;
-                top: 16px;
+                position: fixed;
+                top: 50%;
+                left: 223px;
+                transform: translateY(-50%);
                 width: 26px;
                 height: 56px;
                 padding: 0;
-                flex-shrink: 0;
-                margin-left: -13px;
                 border-radius: 10px;
                 border: 1px solid rgba(31, 102, 186, 0.18);
                 background: #fff;
                 color: #294c72;
                 box-shadow: 0 6px 14px rgba(31, 102, 186, 0.12);
                 cursor: pointer;
-                z-index: 5;
-                transition: margin-left 0.2s ease;
+                z-index: 1050;
+                transition: left 0.2s ease;
             }
 
             .admin-desktop-sidebar-toggle:hover {
@@ -451,7 +450,7 @@
             }
 
             body.admin-sidebar-collapsed .admin-desktop-sidebar-toggle {
-                margin-left: 0;
+                left: 6px;
             }
 
             body.admin-sidebar-collapsed .admin-desktop-sidebar-toggle ion-icon {
