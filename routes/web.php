@@ -64,6 +64,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', fn () => redirect()->route('admin.editor'))->name('dashboard');
     Route::get('/admin', [EbookEditorController::class, 'edit'])->name('admin.editor');
     Route::post('/admin', [EbookEditorController::class, 'update'])->name('admin.editor.update');
+    Route::get('/admin/statistik-pengunjung', [EbookEditorController::class, 'stats'])->name('admin.stats');
     Route::post('/admin/members/{member}/approve', [MemberModerationController::class, 'approve'])->name('admin.members.approve');
     Route::post('/admin/members/{member}/reject', [MemberModerationController::class, 'reject'])->name('admin.members.reject');
     Route::post('/admin/resellers/{reseller}/approve', [ResellerModerationController::class, 'approve'])->name('admin.resellers.approve');

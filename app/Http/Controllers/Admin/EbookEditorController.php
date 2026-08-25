@@ -31,10 +31,6 @@ class EbookEditorController extends Controller
             $approvedMembers = Member::query()->where('is_active', true)->latest()->limit(20)->get();
         }
 
-        $pointVisits = Schema::hasTable('point_visits')
-            ? PointVisit::query()->orderByDesc('visit_count')->get()
-            : collect();
-
         $pendingResellers = collect();
         $approvedResellers = collect();
 
@@ -47,9 +43,19 @@ class EbookEditorController extends Controller
             'content' => $content,
             'pendingMembers' => $pendingMembers,
             'approvedMembers' => $approvedMembers,
-            'pointVisits' => $pointVisits,
             'pendingResellers' => $pendingResellers,
             'approvedResellers' => $approvedResellers,
+        ]);
+    }
+
+    public function stats()
+    {
+        $pointVisits = Schema::hasTable('point_visits')
+            ? PointVisit::query()->orderByDesc('visit_count')->get()
+            : collect();
+
+        return view('admin.stats', [
+            'pointVisits' => $pointVisits,
         ]);
     }
 

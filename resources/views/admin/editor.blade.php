@@ -338,7 +338,10 @@
                         <h2 class="mb-1">Pengaturan Konten Halaman E-Book</h2>
                         <p class="text-secondary mb-0">Semua perubahan di sini langsung memengaruhi halaman publik.</p>
                     </div>
-                    <a href="{{ route('ebook.home') }}" class="btn btn-outline-secondary">Lihat Halaman Publik</a>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{{ route('admin.stats') }}" class="btn btn-outline-primary">Statistik Pengunjung</a>
+                        <a href="{{ route('ebook.home') }}" class="btn btn-outline-secondary">Lihat Halaman Publik</a>
+                    </div>
                 </div>
 
                 @if (session('status'))
@@ -354,34 +357,6 @@
                         </ul>
                     </div>
                 @endif
-
-                <div class="mb-4">
-                    <h3 class="mb-2">Statistik Pengunjung</h3>
-                    <p class="text-secondary mb-2">Kunjungan per poin konten, diurutkan dari yang paling sering dibuka (dihitung unik per sesi).</p>
-
-                    @if (($pointVisits ?? collect())->isEmpty())
-                        <div class="alert alert-light border">Belum ada data kunjungan per poin konten.</div>
-                    @else
-                        <div class="table-responsive">
-                            <table class="table table-sm align-middle">
-                                <thead>
-                                    <tr>
-                                        <th>Poin Konten</th>
-                                        <th class="text-end">Jumlah Kunjungan</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($pointVisits as $pointVisit)
-                                        <tr>
-                                            <td>{{ $pointVisit->title }}</td>
-                                            <td class="text-end">{{ number_format($pointVisit->visit_count, 0, ',', '.') }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @endif
-                </div>
 
                 <div class="mb-4">
                     <h3 class="mb-2">Moderasi Member</h3>
