@@ -309,6 +309,199 @@
                 text-align: left;
             }
         }
+
+        .admin-shell {
+            display: flex;
+            align-items: flex-start;
+            gap: 0;
+        }
+
+        .admin-main-panel {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .admin-side-menu {
+            flex: 0 0 220px;
+            width: 220px;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 16px 32px rgba(31, 102, 186, 0.13);
+            border: 1px solid rgba(31, 102, 186, 0.08);
+            padding: 14px;
+            position: sticky;
+            top: 16px;
+        }
+
+        .admin-side-menu-header {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 700;
+            color: #294c72;
+            margin-bottom: 10px;
+        }
+
+        .admin-side-menu-close {
+            border: 0;
+            background: transparent;
+            font-size: 22px;
+            line-height: 1;
+            color: #294c72;
+        }
+
+        .admin-side-menu-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .admin-side-menu-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            color: #294c72;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            background: var(--editor-soft);
+            border: 1px solid rgba(31, 102, 186, 0.12);
+        }
+
+        .admin-side-menu-link ion-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .admin-side-menu-link:hover {
+            background: var(--editor-primary);
+            color: #fff;
+            border-color: var(--editor-primary);
+        }
+
+        .admin-side-menu-link.is-active {
+            background: var(--editor-primary);
+            color: #fff;
+            border-color: var(--editor-primary);
+        }
+
+        .admin-side-menu-toggle {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(31, 102, 186, 0.25);
+            background: #fff;
+            color: #294c72;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .admin-side-menu-toggle ion-icon {
+            font-size: 18px;
+        }
+
+        .admin-side-menu-backdrop {
+            display: none;
+        }
+
+        .admin-desktop-sidebar-toggle {
+            display: none;
+        }
+
+        @media (min-width: 992px) {
+            .admin-desktop-sidebar-toggle {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                align-self: flex-start;
+                position: sticky;
+                top: 16px;
+                width: 26px;
+                height: 56px;
+                padding: 0;
+                flex-shrink: 0;
+                margin-left: -13px;
+                border-radius: 10px;
+                border: 1px solid rgba(31, 102, 186, 0.18);
+                background: #fff;
+                color: #294c72;
+                box-shadow: 0 6px 14px rgba(31, 102, 186, 0.12);
+                cursor: pointer;
+                z-index: 5;
+                transition: margin-left 0.2s ease;
+            }
+
+            .admin-desktop-sidebar-toggle:hover {
+                color: #fff;
+                background: var(--editor-primary);
+                border-color: var(--editor-primary);
+            }
+
+            .admin-desktop-sidebar-toggle ion-icon {
+                font-size: 16px;
+                transition: transform 0.2s ease;
+            }
+
+            body.admin-sidebar-collapsed .admin-side-menu {
+                display: none;
+            }
+
+            body.admin-sidebar-collapsed .admin-desktop-sidebar-toggle {
+                margin-left: 0;
+            }
+
+            body.admin-sidebar-collapsed .admin-desktop-sidebar-toggle ion-icon {
+                transform: rotate(180deg);
+            }
+        }
+
+        @media (max-width: 991.98px) {
+            .admin-side-menu-toggle {
+                display: inline-flex;
+            }
+
+            .admin-side-menu-header {
+                display: flex;
+            }
+
+            .admin-side-menu {
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                width: 260px;
+                max-width: 82vw;
+                border-radius: 0;
+                z-index: 1050;
+                transform: translateX(-100%);
+                transition: transform 0.25s ease;
+                overflow-y: auto;
+            }
+
+            .admin-side-menu.is-open {
+                transform: translateX(0);
+            }
+
+            .admin-side-menu-backdrop {
+                position: fixed;
+                inset: 0;
+                background: rgba(16, 34, 55, 0.45);
+                z-index: 1040;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.25s ease;
+            }
+
+            .admin-side-menu-backdrop.is-open {
+                display: block;
+                opacity: 1;
+                pointer-events: auto;
+            }
+        }
     </style>
 </head>
 
@@ -331,16 +524,55 @@
     </div>
 
     <div id="appCapsule" class="pt-4 pb-4">
-        <div class="section">
+        <div class="section admin-shell">
+            <aside class="admin-side-menu" id="adminSideMenu">
+                <div class="admin-side-menu-header">
+                    <span>Menu Admin</span>
+                    <button type="button" class="admin-side-menu-close d-lg-none" id="adminSideMenuClose" aria-label="Tutup menu">
+                        <ion-icon name="close-outline"></ion-icon>
+                    </button>
+                </div>
+                <nav class="admin-side-menu-nav">
+                    <a href="{{ route('admin.editor') }}" class="admin-side-menu-link {{ request()->routeIs('admin.editor') ? 'is-active' : '' }}">
+                        <ion-icon name="home-outline"></ion-icon>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="{{ route('admin.stats') }}" class="admin-side-menu-link">
+                        <ion-icon name="bar-chart-outline"></ion-icon>
+                        <span>Statistik Pengunjung</span>
+                    </a>
+                    <a href="{{ route('admin.members.index') }}" class="admin-side-menu-link">
+                        <ion-icon name="people-outline"></ion-icon>
+                        <span>Daftar Member</span>
+                    </a>
+                    <a href="{{ route('admin.resellers.index') }}" class="admin-side-menu-link">
+                        <ion-icon name="storefront-outline"></ion-icon>
+                        <span>Daftar Reseller</span>
+                    </a>
+                    <a href="{{ route('admin.theme.edit') }}" class="admin-side-menu-link">
+                        <ion-icon name="color-palette-outline"></ion-icon>
+                        <span>Pengaturan Warna Front End</span>
+                    </a>
+                </nav>
+            </aside>
+            <div class="admin-side-menu-backdrop" id="adminSideMenuBackdrop"></div>
+
+            <button type="button" class="admin-desktop-sidebar-toggle" id="adminDesktopSidebarToggle" aria-label="Sembunyikan menu" aria-expanded="true">
+                <ion-icon name="chevron-back-outline"></ion-icon>
+            </button>
+
+            <div class="admin-main-panel">
             <div class="editor-panel p-3 p-md-4">
                 <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
                     <div>
+                        <button type="button" class="admin-side-menu-toggle d-lg-none mb-2" id="adminSideMenuToggle" aria-expanded="false" aria-controls="adminSideMenu">
+                            <ion-icon name="menu-outline"></ion-icon>
+                            <span>Menu</span>
+                        </button>
                         <h2 class="mb-1">Pengaturan Konten Halaman E-Book</h2>
                         <p class="text-secondary mb-0">Semua perubahan di sini langsung memengaruhi halaman publik.</p>
                     </div>
                     <div class="d-flex gap-2 flex-wrap">
-                        <a href="{{ route('admin.stats') }}" class="btn btn-outline-primary">Statistik Pengunjung</a>
-                        <a href="{{ route('admin.theme.edit') }}" class="btn btn-outline-primary">Pengaturan Warna Front End</a>
                         <a href="{{ route('ebook.home') }}" class="btn btn-outline-secondary">Lihat Halaman Publik</a>
                     </div>
                 </div>
@@ -360,10 +592,7 @@
                 @endif
 
                 <div class="mb-4">
-                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
-                        <h3 class="mb-0">Moderasi Member</h3>
-                        <a href="{{ route('admin.members.index') }}" class="btn btn-outline-primary">Daftar Member</a>
-                    </div>
+                    <h3 class="mb-2">Moderasi Member</h3>
                     <p class="text-secondary mb-2">Approve pendaftar setelah bukti transfer Rp. {{ number_format($content->payment_price_final, 0, ',', '.') }} sesuai. Pendaftar yang belum upload bukti transfer tidak ditampilkan di sini.</p>
 
                     @if (($pendingMembers ?? collect())->isEmpty())
@@ -397,10 +626,7 @@
                 </div>
 
                 <div class="mb-4">
-                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
-                        <h3 class="mb-0">Approval Reseller</h3>
-                        <a href="{{ route('admin.resellers.index') }}" class="btn btn-outline-primary">Daftar Reseller</a>
-                    </div>
+                    <h3 class="mb-2">Approval Reseller</h3>
                     <p class="text-secondary mb-2">Setujui pendaftar reseller agar bisa login dan melihat member yang bergabung lewat kode referalnya.</p>
 
                     @if (($pendingResellers ?? collect())->isEmpty())
@@ -625,6 +851,7 @@
                     <button type="submit" class="btn btn-ebook btn-block mt-3">Simpan Perubahan</button>
                 </form>
             </div>
+            </div>
         </div>
     </div>
 
@@ -702,6 +929,65 @@
             'DocumentOutline', 'TableOfContents', 'FormatPainter', 'Template', 'SlashCommand',
             'PasteFromOfficeEnhanced'
         ];
+        (function () {
+            const sideMenu = document.getElementById('adminSideMenu');
+            const toggleButton = document.getElementById('adminSideMenuToggle');
+            const closeButton = document.getElementById('adminSideMenuClose');
+            const backdrop = document.getElementById('adminSideMenuBackdrop');
+
+            if (!sideMenu || !toggleButton || !backdrop) {
+                return;
+            }
+
+            const openMenu = () => {
+                sideMenu.classList.add('is-open');
+                backdrop.classList.add('is-open');
+                toggleButton.setAttribute('aria-expanded', 'true');
+            };
+
+            const closeMenu = () => {
+                sideMenu.classList.remove('is-open');
+                backdrop.classList.remove('is-open');
+                toggleButton.setAttribute('aria-expanded', 'false');
+            };
+
+            toggleButton.addEventListener('click', () => {
+                if (sideMenu.classList.contains('is-open')) {
+                    closeMenu();
+                } else {
+                    openMenu();
+                }
+            });
+
+            closeButton?.addEventListener('click', closeMenu);
+            backdrop.addEventListener('click', closeMenu);
+        })();
+
+        (function () {
+            const desktopToggle = document.getElementById('adminDesktopSidebarToggle');
+
+            if (!desktopToggle) {
+                return;
+            }
+
+            const storageKey = 'adminSidebarCollapsed';
+
+            const applyState = (collapsed) => {
+                document.body.classList.toggle('admin-sidebar-collapsed', collapsed);
+                desktopToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+                desktopToggle.setAttribute('aria-label', collapsed ? 'Tampilkan menu' : 'Sembunyikan menu');
+            };
+
+            let collapsed = window.localStorage.getItem(storageKey) === '1';
+            applyState(collapsed);
+
+            desktopToggle.addEventListener('click', () => {
+                collapsed = !collapsed;
+                applyState(collapsed);
+                window.localStorage.setItem(storageKey, collapsed ? '1' : '0');
+            });
+        })();
+
         const wrapper = document.getElementById('chapters-wrapper');
         const chapterTemplate = document.getElementById('chapter-template');
         const pointTemplate = document.getElementById('point-template');
