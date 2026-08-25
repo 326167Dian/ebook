@@ -119,7 +119,7 @@
                     <div class="input-wrapper">
                         <input type="text" inputmode="numeric" class="form-control" name="referral_code" placeholder="Kode Referral" value="{{ old('referral_code') }}" required>
                     </div>
-                    <small class="text-muted d-block mt-1">Wajib diisi dengan kode referral dari reseller yang mengajak Anda.</small>
+                    <small class="text-muted d-block mt-1">Wajib diisi dengan kode referral sahabat yang mengajak Anda.</small>
                 </div>
 
                 <button type="submit" class="btn btn-ebook btn-block mt-3">Daftar & Akses E-Book</button>
