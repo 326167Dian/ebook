@@ -30,18 +30,15 @@ class EbookEditorController extends Controller
         }
 
         $pendingResellers = collect();
-        $approvedResellers = collect();
 
         if (Schema::hasTable('reseller')) {
             $pendingResellers = Reseller::query()->where('is_active', false)->latest()->get();
-            $approvedResellers = Reseller::query()->where('is_active', true)->latest()->limit(20)->get();
         }
 
         return view('admin.editor', [
             'content' => $content,
             'pendingMembers' => $pendingMembers,
             'pendingResellers' => $pendingResellers,
-            'approvedResellers' => $approvedResellers,
         ]);
     }
 
@@ -67,6 +64,43 @@ class EbookEditorController extends Controller
         ]);
     }
 
+    public function resellers()
+    {
+        $approvedResellers = Schema::hasTable('reseller')
+            ? Reseller::query()->where('is_active', true)->latest()->get()
+            : collect();
+
+        return view('admin.resellers', [
+            'approvedResellers' => $approvedResellers,
+        ]);
+    }
+
+    public function editTheme()
+    {
+        $content = EbookContent::query()->firstOrCreate([], EbookContent::defaultData());
+
+        return view('admin.theme', [
+            'content' => $content,
+        ]);
+    }
+
+    public function updateTheme(Request $request)
+    {
+        $data = $request->validate([
+            'theme_primary' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'theme_secondary' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'theme_accent' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'theme_bg_start' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'theme_bg_end' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'theme_text' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+        ]);
+
+        $content = EbookContent::query()->firstOrCreate([], EbookContent::defaultData());
+        $content->update($data);
+
+        return redirect()->route('admin.theme.edit')->with('status', 'Tema warna frontend berhasil diperbarui.');
+    }
+
     public function update(Request $request)
     {
         $data = $request->validate([
@@ -81,12 +115,6 @@ class EbookEditorController extends Controller
             'payment_bank_name' => ['required', 'string', 'max:80'],
             'payment_bank_account_number' => ['required', 'string', 'max:50'],
             'payment_bank_account_holder' => ['required', 'string', 'max:120'],
-            'theme_primary' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'theme_secondary' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'theme_accent' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'theme_bg_start' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'theme_bg_end' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'theme_text' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'chapters' => ['required', 'array', 'min:1'],
             'chapters.*.title' => ['required', 'string', 'max:255'],
             'chapters.*.items' => ['required', 'array', 'min:1'],
@@ -229,12 +257,6 @@ class EbookEditorController extends Controller
             'hero_title' => $data['hero_title'],
             'hero_description' => $data['hero_description'],
             'cover_image' => $coverImagePath,
-            'theme_primary' => $data['theme_primary'],
-            'theme_secondary' => $data['theme_secondary'],
-            'theme_accent' => $data['theme_accent'],
-            'theme_bg_start' => $data['theme_bg_start'],
-            'theme_bg_end' => $data['theme_bg_end'],
-            'theme_text' => $data['theme_text'],
             'chapters' => $chapters,
             'payment_price_original' => $data['payment_price_original'],
             'payment_price_final' => $data['payment_price_final'],

@@ -340,6 +340,7 @@
                     </div>
                     <div class="d-flex gap-2 flex-wrap">
                         <a href="{{ route('admin.stats') }}" class="btn btn-outline-primary">Statistik Pengunjung</a>
+                        <a href="{{ route('admin.theme.edit') }}" class="btn btn-outline-primary">Pengaturan Warna Front End</a>
                         <a href="{{ route('ebook.home') }}" class="btn btn-outline-secondary">Lihat Halaman Publik</a>
                     </div>
                 </div>
@@ -396,7 +397,10 @@
                 </div>
 
                 <div class="mb-4">
-                    <h3 class="mb-2">Approval Reseller</h3>
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+                        <h3 class="mb-0">Approval Reseller</h3>
+                        <a href="{{ route('admin.resellers.index') }}" class="btn btn-outline-primary">Daftar Reseller</a>
+                    </div>
                     <p class="text-secondary mb-2">Setujui pendaftar reseller agar bisa login dan melihat member yang bergabung lewat kode referalnya.</p>
 
                     @if (($pendingResellers ?? collect())->isEmpty())
@@ -421,35 +425,6 @@
                                 </div>
                             </div>
                         @endforeach
-                    @endif
-
-                    @if (($approvedResellers ?? collect())->isNotEmpty())
-                        <div class="mt-3">
-                            <h4 class="mb-2">Reseller Aktif Terbaru</h4>
-                            <div class="table-responsive">
-                                <table class="table table-sm align-middle">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Nama</th>
-                                            <th>Username</th>
-                                            <th>Telp</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($approvedResellers as $reseller)
-                                            <tr>
-                                                <td>{{ $reseller->id_reseller }}</td>
-                                                <td>{{ $reseller->nm_reseller }}</td>
-                                                <td>{{ $reseller->username }}</td>
-                                                <td>{{ $reseller->telp }}</td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                            <small class="text-muted d-block mt-1">ID di atas adalah Kode Referral yang bisa dibagikan reseller ke calon member.</small>
-                        </div>
                     @endif
                 </div>
 
@@ -540,42 +515,6 @@
 
                     <div class="section-save-actions">
                         <button type="submit" class="btn btn-ebook">Simpan Section Pembayaran</button>
-                    </div>
-
-                    <hr class="mt-4 mb-3">
-
-                    <h3 class="mb-2">Tema Warna Frontend</h3>
-                    <p class="text-secondary mb-3">Atur nuansa warna halaman publik eBook menggunakan color picker.</p>
-
-                    <div class="row g-2">
-                        <div class="col-md-4">
-                            <label class="form-label">Warna Utama</label>
-                            <input type="color" class="form-control form-control-color w-100" name="theme_primary" value="{{ old('theme_primary', $content->theme_primary ?? '#1e5fae') }}" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Warna Sekunder</label>
-                            <input type="color" class="form-control form-control-color w-100" name="theme_secondary" value="{{ old('theme_secondary', $content->theme_secondary ?? '#4ea3e6') }}" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Warna Aksen</label>
-                            <input type="color" class="form-control form-control-color w-100" name="theme_accent" value="{{ old('theme_accent', $content->theme_accent ?? '#9fd8ff') }}" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Latar Awal</label>
-                            <input type="color" class="form-control form-control-color w-100" name="theme_bg_start" value="{{ old('theme_bg_start', $content->theme_bg_start ?? '#f7fcff') }}" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Latar Akhir</label>
-                            <input type="color" class="form-control form-control-color w-100" name="theme_bg_end" value="{{ old('theme_bg_end', $content->theme_bg_end ?? '#dcebfa') }}" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Warna Teks Utama</label>
-                            <input type="color" class="form-control form-control-color w-100" name="theme_text" value="{{ old('theme_text', $content->theme_text ?? '#16314f') }}" required>
-                        </div>
-                    </div>
-
-                    <div class="section-save-actions">
-                        <button type="submit" class="btn btn-ebook">Simpan Section Tema</button>
                     </div>
 
                     <hr class="mt-4 mb-3">
