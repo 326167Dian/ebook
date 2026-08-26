@@ -96,19 +96,7 @@
                 </div>
 
                 <div class="form-group boxed mt-2">
-                    <div class="input-wrapper">
-                        <input type="password" class="form-control" name="password" placeholder="Password" required>
-                    </div>
-                </div>
-
-                <div class="form-group boxed mt-2">
-                    <div class="input-wrapper">
-                        <input type="password" class="form-control" name="password_confirmation"
-                            placeholder="Konfirmasi password" required>
-                    </div>
-                </div>
-
-                <div class="form-group boxed mt-2">
+                    <label class="form-label">Upload Bukti Transfer</label>
                     <div class="input-wrapper">
                         <input type="file" class="form-control" name="payment_proof" accept="image/*" required>
                     </div>

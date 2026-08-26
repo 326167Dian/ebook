@@ -226,7 +226,6 @@ class MemberAuthController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:150', 'unique:members,email'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
             'payment_proof' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'referral_code' => [
                 'required',
@@ -247,7 +246,7 @@ class MemberAuthController extends Controller
         Member::query()->create([
             'name' => $data['name'],
             'email' => $data['email'],
-            'password' => $data['password'],
+            'password' => Hash::make(Str::random(40)),
             'payment_proof_path' => 'storage-public/uploads/payment-proofs/' . $fileName,
             'is_active' => false,
             'paid_at' => null,
