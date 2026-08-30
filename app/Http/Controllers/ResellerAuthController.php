@@ -109,7 +109,14 @@ class ResellerAuthController extends Controller
         $members = Member::query()
             ->where('id_reseller', $reseller->id_reseller)
             ->latest()
-            ->get(['id', 'name', 'email']);
+            ->get([
+                'id',
+                'name',
+                'email',
+                'commission_amount',
+                'commission_proof_path',
+                'commission_paid_at',
+            ]);
 
         return view('reseller.dashboard', [
             'reseller' => $reseller,

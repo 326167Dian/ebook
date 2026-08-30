@@ -66,13 +66,53 @@ class EbookEditorController extends Controller
 
     public function resellers()
     {
-        $approvedResellers = Schema::hasTable('reseller')
-            ? Reseller::query()->where('is_active', true)->latest()->get()
-            : collect();
+        $approvedResellers = collect();
+
+        if (Schema::hasTable('reseller')) {
+            $approvedResellers = Reseller::query()->where('is_active', true)->latest()->get();
+        }
 
         return view('admin.resellers', [
             'approvedResellers' => $approvedResellers,
         ]);
+    }
+
+    public function resellerMembers(Reseller $reseller)
+    {
+        abort_unless($reseller->is_active, 404);
+
+        return view('admin.reseller-members', [
+            'reseller' => $reseller,
+            'members' => Member::query()
+                ->where('id_reseller', $reseller->id_reseller)
+                ->latest()
+                ->get(),
+        ]);
+    }
+
+    public function uploadResellerCommissionProof(Request $request, Reseller $reseller, Member $member)
+    {
+        abort_unless($reseller->is_active, 404);
+        abort_unless((int) $member->id_reseller === (int) $reseller->id_reseller, 404);
+
+        $data = $request->validate([
+            'commission_amount' => ['required', 'numeric', 'min:0'],
+            'commission_proof' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+        ], [
+            'commission_proof.max' => 'Bukti transfer maksimal berukuran 5 MB.',
+        ]);
+
+        $proofFile = $data['commission_proof'];
+        $fileName = 'commission-proof-' . now()->format('YmdHis') . '-' . Str::random(8) . '.' . $proofFile->getClientOriginalExtension();
+        Storage::disk('public')->putFileAs('uploads/commission-proofs', $proofFile, $fileName);
+
+        $member->update([
+            'commission_amount' => $data['commission_amount'],
+            'commission_proof_path' => 'storage-public/uploads/commission-proofs/' . $fileName,
+            'commission_paid_at' => now(),
+        ]);
+
+        return back()->with('status', 'Bukti transfer komisi berhasil diupload.');
     }
 
     public function editTheme()

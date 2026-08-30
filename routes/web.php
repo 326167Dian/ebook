@@ -67,6 +67,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/statistik-pengunjung', [EbookEditorController::class, 'stats'])->name('admin.stats');
     Route::get('/admin/daftar-member', [EbookEditorController::class, 'members'])->name('admin.members.index');
     Route::get('/admin/daftar-reseller', [EbookEditorController::class, 'resellers'])->name('admin.resellers.index');
+    Route::get('/admin/resellers/{reseller}/members', [EbookEditorController::class, 'resellerMembers'])->name('admin.resellers.members');
+    Route::post('/admin/resellers/{reseller}/members/{member}/commission-proof', [EbookEditorController::class, 'uploadResellerCommissionProof'])->name('admin.resellers.commission-proof');
     Route::get('/admin/tema-warna', [EbookEditorController::class, 'editTheme'])->name('admin.theme.edit');
     Route::post('/admin/tema-warna', [EbookEditorController::class, 'updateTheme'])->name('admin.theme.update');
     Route::get('/admin/pengaturan-pembayaran', [EbookEditorController::class, 'editPayment'])->name('admin.payment.edit');

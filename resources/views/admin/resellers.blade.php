@@ -28,6 +28,7 @@
             box-shadow: 0 16px 32px rgba(31, 102, 186, 0.13);
             border: 1px solid rgba(31, 102, 186, 0.08);
         }
+
     </style>
 </head>
 
@@ -60,6 +61,7 @@
                                     <th>Nama</th>
                                     <th>Username</th>
                                     <th>Telp</th>
+                                    <th>Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -69,12 +71,18 @@
                                         <td>{{ $reseller->nm_reseller }}</td>
                                         <td>{{ $reseller->username }}</td>
                                         <td>{{ $reseller->telp }}</td>
+                                        <td>
+                                            <a href="{{ route('admin.resellers.members', $reseller) }}" class="btn btn-sm btn-primary">
+                                                Detail Member
+                                            </a>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
                     </div>
                     <small class="text-muted d-block mt-1">ID di atas adalah Kode Referral yang bisa dibagikan reseller ke calon member.</small>
+
                 @endif
 
                 <div class="mt-4">

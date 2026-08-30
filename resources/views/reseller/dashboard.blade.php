@@ -37,6 +37,15 @@
             padding: 12px;
             font-size: 14px;
         }
+
+        .commission-proof {
+            border: 1px solid #d9e2ec;
+            border-radius: 6px;
+            display: block;
+            height: 64px;
+            object-fit: cover;
+            width: 88px;
+        }
     </style>
 </head>
 
@@ -71,6 +80,8 @@
                                 <th>No</th>
                                 <th>Nama Member</th>
                                 <th>Email</th>
+                                <th>Komisi</th>
+                                <th>Bukti Transfer</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -79,6 +90,25 @@
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $member->name }}</td>
                                     <td>{{ $member->email }}</td>
+                                    <td>
+                                        @if (!is_null($member->commission_amount))
+                                            Rp {{ number_format($member->commission_amount, 0, ',', '.') }}
+                                            @if ($member->commission_paid_at)
+                                                <small class="text-muted d-block">{{ $member->commission_paid_at->format('d M Y') }}</small>
+                                            @endif
+                                        @else
+                                            <span class="text-muted">Belum tersedia</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if (!empty($member->commission_proof_path))
+                                            <a href="{{ asset($member->commission_proof_path) }}" target="_blank" rel="noopener" title="Klik untuk memperbesar bukti transfer">
+                                                <img src="{{ asset($member->commission_proof_path) }}" alt="Bukti Transfer Komisi {{ $member->name }}" class="commission-proof">
+                                            </a>
+                                        @else
+                                            <span class="text-muted">Belum tersedia</span>
+                                        @endif
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

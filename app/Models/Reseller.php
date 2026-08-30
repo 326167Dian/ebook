@@ -22,11 +22,17 @@ class Reseller extends Model
         'bank',
         'rekening',
         'is_active',
+        'commission_proof_path',
     ];
 
     protected $hidden = [
         'password',
     ];
+
+    public function members()
+    {
+        return $this->hasMany(Member::class, 'id_reseller', 'id_reseller');
+    }
 
     protected function casts(): array
     {
