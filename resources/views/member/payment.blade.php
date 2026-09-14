@@ -112,9 +112,13 @@
 
                 <div class="form-group boxed mt-2">
                     <div class="input-wrapper">
-                        <input type="text" inputmode="numeric" class="form-control" name="referral_code" placeholder="Kode Referral" value="{{ old('referral_code') }}" required>
+                        <input type="text" inputmode="numeric" class="form-control" name="referral_code" placeholder="Kode Referral" value="{{ old('referral_code', $referralCode ?? '') }}" required>
                     </div>
-                    <small class="text-muted d-block mt-1">Wajib diisi dengan kode referral dari reseller yang mengajak Anda.</small>
+                    @if (! empty($referralCode) && ! old('referral_code'))
+                        <small class="text-success d-block mt-1">Kode referral otomatis terisi dari link yang Anda buka. Anda tetap bisa mengubahnya bila perlu.</small>
+                    @else
+                        <small class="text-muted d-block mt-1">Wajib diisi dengan kode referral dari reseller yang mengajak Anda.</small>
+                    @endif
                 </div>
 
                 <button type="submit" class="btn btn-ebook btn-block mt-3">Kirim Bukti Pembayaran</button>

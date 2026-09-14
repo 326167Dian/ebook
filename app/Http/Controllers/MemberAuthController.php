@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\EbookContent;
 use App\Models\Member;
+use App\Models\Reseller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
@@ -117,6 +118,7 @@ class MemberAuthController extends Controller
         return view('member.payment', [
             'member' => $member,
             'content' => EbookContent::query()->firstOrCreate([], EbookContent::defaultData()),
+            'referralCode' => $this->resolveReferralCode($request),
         ]);
     }
 
@@ -157,16 +159,33 @@ class MemberAuthController extends Controller
             'id_reseller' => $data['referral_code'],
         ])->save();
 
+        $request->session()->forget('referral_id_reseller');
+
         return redirect()
             ->route('member.payment')
             ->with('status', 'Bukti pembayaran berhasil dikirim. Tunggu verifikasi admin untuk akses penuh e-book.');
     }
 
-    public function showRegister()
+    public function showRegister(Request $request)
     {
         return view('member.register', [
             'content' => EbookContent::query()->firstOrCreate([], EbookContent::defaultData()),
+            'referralCode' => $this->resolveReferralCode($request),
         ]);
+    }
+
+    private function resolveReferralCode(Request $request): ?int
+    {
+        $referralCode = $request->session()->get('referral_id_reseller');
+
+        if ($referralCode === null) {
+            return null;
+        }
+
+        return Reseller::query()
+            ->where('id_reseller', $referralCode)
+            ->where('is_active', true)
+            ->value('id_reseller');
     }
 
     public function showForgotPassword()
@@ -252,6 +271,8 @@ class MemberAuthController extends Controller
             'paid_at' => null,
             'id_reseller' => $data['referral_code'],
         ]);
+
+        $request->session()->forget('referral_id_reseller');
 
         return redirect()->route('member.login')->with('status', 'Registrasi berhasil. Akun Anda akan aktif setelah bukti transfer diverifikasi admin.');
     }

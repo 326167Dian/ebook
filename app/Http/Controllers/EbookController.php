@@ -6,6 +6,7 @@ use App\Models\EbookContent;
 use App\Models\Member;
 use App\Models\PharmacyLogo;
 use App\Models\PointVisit;
+use App\Models\Reseller;
 use App\Models\SiteVisit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
@@ -13,8 +14,10 @@ use Illuminate\Support\Facades\Schema;
 
 class EbookController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, $id_reseller = null)
     {
+        $this->captureReferral($request, $id_reseller);
+
         $covers = [];
         $coverDirectory = public_path('coverebook');
 
@@ -185,6 +188,22 @@ class EbookController extends Controller
         if (! $request->session()->get($sessionKey)) {
             $pointVisit->increment('visit_count');
             $request->session()->put($sessionKey, true);
+        }
+    }
+
+    private function captureReferral(Request $request, $id_reseller = null): void
+    {
+        if ($id_reseller === null) {
+            return;
+        }
+
+        $isValidReseller = Reseller::query()
+            ->where('id_reseller', $id_reseller)
+            ->where('is_active', true)
+            ->exists();
+
+        if ($isValidReseller) {
+            $request->session()->put('referral_id_reseller', $id_reseller);
         }
     }
 

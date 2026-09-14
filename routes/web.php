@@ -85,3 +85,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/admin/upload-image', [CkeditorUploadController::class, 'store'])->name('admin.ckeditor.upload');
     Route::post('/admin/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
 });
+
+// Short referral link, e.g. https://domain.test/1 shows the normal e-book home
+// page (so the customer can preview it first) while remembering reseller id 1
+// in the session, so it auto-fills "Kode Referral" whenever they later reach
+// the member registration form. Placed last so it only catches numeric
+// segments not matched by any route above.
+Route::get('/{id_reseller}', [EbookController::class, 'index'])
+    ->whereNumber('id_reseller')
+    ->name('ebook.referral');

@@ -65,7 +65,9 @@
 
             <div class="referral-note mb-3">
                 Kode Referral Anda: <strong>{{ $reseller->id_reseller }}</strong><br>
-                Bagikan kode ini ke calon member. Saat mereka mengisi kode ini di form upload bukti pembayaran, keanggotaan mereka akan tercatat sebagai ajakan Anda.
+                Atau bagikan link ini ke calon member:<br>
+                <strong>{{ route('ebook.referral', $reseller->id_reseller) }}</strong><br>
+                Mereka akan melihat halaman utama e-book seperti biasa. Saat mereka klik materi terkunci lalu mendaftar member, kode referral Anda otomatis terisi tanpa perlu diketik manual.
             </div>
 
             <h4 class="mb-2">Member yang Bergabung Lewat Referral Anda</h4>
