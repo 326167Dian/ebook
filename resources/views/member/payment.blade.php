@@ -74,7 +74,7 @@
                 <div><strong>Member:</strong> {{ $member->name }}</div>
                 <div><strong>Email:</strong> {{ $member->email }}</div>
                 <div class="mt-2">
-                    Upload bukti transfer sebesar <del>Rp. {{ number_format($content->payment_price_original, 0, ',', '.') }}</del> <strong>Rp. {{ number_format($content->payment_price_final, 0, ',', '.') }}</strong>.<br>
+                    Upload bukti transfer sebesar <span id="price-display">Rp. {{ number_format($content->payment_price_original, 0, ',', '.') }}</span>.<br>
                     Ke No Rekening berikut ini<br>
                     <strong>{{ $content->payment_bank_name }} {{ $content->payment_bank_account_number }} a/n {{ $content->payment_bank_account_holder }}</strong><br>
                     {{ $content->payment_note }}
@@ -135,6 +135,29 @@
 
     <script src="{{ asset('Mobilekit/HTML/assets/js/lib/bootstrap.min.js') }}"></script>
     <script src="{{ asset('Mobilekit/HTML/assets/js/base.js') }}"></script>
+    <script>
+        (function () {
+            var referralInput = document.querySelector('input[name="referral_code"]');
+            var priceDisplay = document.getElementById('price-display');
+            var originalPrice = {{ (int) $content->payment_price_original }};
+            var finalPrice = {{ (int) $content->payment_price_final }};
+
+            function formatRupiah(amount) {
+                return 'Rp. ' + amount.toString().replace(/\B(?=(\d{3})+(?!\d)$)/g, '.');
+            }
+
+            function updatePrice() {
+                if (referralInput.value.trim().length > 0) {
+                    priceDisplay.innerHTML = '<del>' + formatRupiah(originalPrice) + '</del> <strong>' + formatRupiah(finalPrice) + '</strong>';
+                } else {
+                    priceDisplay.textContent = formatRupiah(originalPrice);
+                }
+            }
+
+            referralInput.addEventListener('input', updatePrice);
+            updatePrice();
+        })();
+    </script>
 </body>
 
 </html>
