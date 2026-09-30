@@ -51,6 +51,21 @@
             background: #2b7fd2;
             color: #fff;
         }
+
+        .pay-tab-btn {
+            border: 1px solid #1f66ba;
+            background: #fff;
+            color: #1f66ba;
+            border-radius: 10px;
+            padding: 8px 10px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .pay-tab-btn.active {
+            background: #1f66ba;
+            color: #fff;
+        }
     </style>
 </head>
 
@@ -73,12 +88,6 @@
             <div class="status-note mb-3">
                 <div><strong>Member:</strong> {{ $member->name }}</div>
                 <div><strong>Email:</strong> {{ $member->email }}</div>
-                <div class="mt-2">
-                    Upload bukti transfer sebesar <span id="price-display">Rp. {{ number_format($content->payment_price_original, 0, ',', '.') }}</span>.<br>
-                    Ke No Rekening berikut ini<br>
-                    <strong>{{ $content->payment_bank_name }} {{ $content->payment_bank_account_number }} a/n {{ $content->payment_bank_account_holder }}</strong><br>
-                    {{ $content->payment_note }}
-                </div>
             </div>
 
             @if (!empty($member->payment_proof_path))
@@ -100,29 +109,70 @@
                 @endif
             @endif
 
-            <form method="POST" action="{{ route('member.payment.submit') }}" enctype="multipart/form-data">
-                @csrf
+            <div class="d-flex mb-3" style="gap: 8px;">
+                <button type="button" id="pay-tab-btn-qris" class="pay-tab-btn flex-fill active" onclick="switchPayTab('qris')">Bayar Otomatis QRIS</button>
+                <button type="button" id="pay-tab-btn-manual" class="pay-tab-btn flex-fill" onclick="switchPayTab('manual')">Transfer Manual</button>
+            </div>
 
-                <div class="form-group boxed">
-                    <div class="input-wrapper">
-                        <input type="file" class="form-control" name="payment_proof" accept="image/*" required>
-                    </div>
-                    <small class="text-muted d-block mt-1">Format gambar: JPG, JPEG, PNG, WEBP. Maksimal 5MB.</small>
+            <div id="pay-tab-qris">
+                <div class="status-note mb-3">
+                    Bayar otomatis sebesar <span id="price-display-qris">Rp. {{ number_format($content->payment_price_original, 0, ',', '.') }}</span> via QRIS
+                    (GoPay, OVO, DANA, ShopeePay, m-Banking, dll).<br>
+                    Akun langsung aktif otomatis begitu pembayaran terverifikasi, tanpa perlu upload bukti transfer.
                 </div>
 
-                <div class="form-group boxed mt-2">
-                    <div class="input-wrapper">
-                        <input type="text" inputmode="numeric" class="form-control" name="referral_code" placeholder="Kode Referral" value="{{ old('referral_code', $referralCode ?? '') }}" required>
+                <form method="POST" action="{{ route('member.payment.qris.create') }}">
+                    @csrf
+                    <input type="hidden" name="_form" value="qris">
+
+                    <div class="form-group boxed mt-2">
+                        <div class="input-wrapper">
+                            <input type="text" inputmode="numeric" class="form-control" id="referral-qris" name="referral_code" placeholder="Kode Referral" value="{{ old('referral_code', $referralCode ?? '') }}" required>
+                        </div>
+                        @if (! empty($referralCode) && ! old('referral_code'))
+                            <small class="text-success d-block mt-1">Kode referral otomatis terisi dari link yang Anda buka. Anda tetap bisa mengubahnya bila perlu.</small>
+                        @else
+                            <small class="text-muted d-block mt-1">Wajib diisi dengan kode referral dari reseller yang mengajak Anda.</small>
+                        @endif
                     </div>
-                    @if (! empty($referralCode) && ! old('referral_code'))
-                        <small class="text-success d-block mt-1">Kode referral otomatis terisi dari link yang Anda buka. Anda tetap bisa mengubahnya bila perlu.</small>
-                    @else
-                        <small class="text-muted d-block mt-1">Wajib diisi dengan kode referral dari reseller yang mengajak Anda.</small>
-                    @endif
+
+                    <button type="submit" class="btn btn-ebook btn-block mt-3">Lanjut Bayar dengan QRIS</button>
+                </form>
+            </div>
+
+            <div id="pay-tab-manual" style="display: none;">
+                <div class="status-note mb-3">
+                    Upload bukti transfer sebesar <span id="price-display-manual">Rp. {{ number_format($content->payment_price_original, 0, ',', '.') }}</span>.<br>
+                    Ke No Rekening berikut ini<br>
+                    <strong>{{ $content->payment_bank_name }} {{ $content->payment_bank_account_number }} a/n {{ $content->payment_bank_account_holder }}</strong><br>
+                    {{ $content->payment_note }}
                 </div>
 
-                <button type="submit" class="btn btn-ebook btn-block mt-3">Kirim Bukti Pembayaran</button>
-            </form>
+                <form method="POST" action="{{ route('member.payment.submit') }}" enctype="multipart/form-data">
+                    @csrf
+                    <input type="hidden" name="_form" value="manual">
+
+                    <div class="form-group boxed">
+                        <div class="input-wrapper">
+                            <input type="file" class="form-control" name="payment_proof" accept="image/*" required>
+                        </div>
+                        <small class="text-muted d-block mt-1">Format gambar: JPG, JPEG, PNG, WEBP. Maksimal 5MB.</small>
+                    </div>
+
+                    <div class="form-group boxed mt-2">
+                        <div class="input-wrapper">
+                            <input type="text" inputmode="numeric" class="form-control" id="referral-manual" name="referral_code" placeholder="Kode Referral" value="{{ old('referral_code', $referralCode ?? '') }}" required>
+                        </div>
+                        @if (! empty($referralCode) && ! old('referral_code'))
+                            <small class="text-success d-block mt-1">Kode referral otomatis terisi dari link yang Anda buka. Anda tetap bisa mengubahnya bila perlu.</small>
+                        @else
+                            <small class="text-muted d-block mt-1">Wajib diisi dengan kode referral dari reseller yang mengajak Anda.</small>
+                        @endif
+                    </div>
+
+                    <button type="submit" class="btn btn-ebook btn-block mt-3">Kirim Bukti Pembayaran</button>
+                </form>
+            </div>
 
             <a href="{{ route('ebook.home') }}" class="btn btn-outline-primary btn-block mt-2">Kembali ke Halaman E-Book</a>
 
@@ -136,9 +186,14 @@
     <script src="{{ asset('Mobilekit/HTML/assets/js/lib/bootstrap.min.js') }}"></script>
     <script src="{{ asset('Mobilekit/HTML/assets/js/base.js') }}"></script>
     <script>
+        function switchPayTab(tab) {
+            document.getElementById('pay-tab-qris').style.display = tab === 'qris' ? '' : 'none';
+            document.getElementById('pay-tab-manual').style.display = tab === 'manual' ? '' : 'none';
+            document.getElementById('pay-tab-btn-qris').classList.toggle('active', tab === 'qris');
+            document.getElementById('pay-tab-btn-manual').classList.toggle('active', tab === 'manual');
+        }
+
         (function () {
-            var referralInput = document.querySelector('input[name="referral_code"]');
-            var priceDisplay = document.getElementById('price-display');
             var originalPrice = {{ (int) $content->payment_price_original }};
             var finalPrice = {{ (int) $content->payment_price_final }};
 
@@ -146,16 +201,28 @@
                 return 'Rp. ' + amount.toString().replace(/\B(?=(\d{3})+(?!\d)$)/g, '.');
             }
 
-            function updatePrice() {
-                if (referralInput.value.trim().length > 0) {
-                    priceDisplay.innerHTML = '<del>' + formatRupiah(originalPrice) + '</del> <strong>' + formatRupiah(finalPrice) + '</strong>';
-                } else {
-                    priceDisplay.textContent = formatRupiah(originalPrice);
+            function wireReferralPrice(inputId, displayId) {
+                var input = document.getElementById(inputId);
+                var display = document.getElementById(displayId);
+
+                function updatePrice() {
+                    if (input.value.trim().length > 0) {
+                        display.innerHTML = '<del>' + formatRupiah(originalPrice) + '</del> <strong>' + formatRupiah(finalPrice) + '</strong>';
+                    } else {
+                        display.textContent = formatRupiah(originalPrice);
+                    }
                 }
+
+                input.addEventListener('input', updatePrice);
+                updatePrice();
             }
 
-            referralInput.addEventListener('input', updatePrice);
-            updatePrice();
+            wireReferralPrice('referral-qris', 'price-display-qris');
+            wireReferralPrice('referral-manual', 'price-display-manual');
+
+            if (@json(old('_form')) === 'manual') {
+                switchPayTab('manual');
+            }
         })();
     </script>
 </body>

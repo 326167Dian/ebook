@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'member.access' => EnsureMemberAccess::class,
             'reseller.access' => EnsureResellerAccess::class,
         ]);
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/gdcpay/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
