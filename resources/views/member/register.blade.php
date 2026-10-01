@@ -87,7 +87,8 @@
             @endif
 
             <div class="d-flex mb-3" style="gap: 8px;">
-                <button type="button" id="pay-tab-btn-qris" class="pay-tab-btn flex-fill active" onclick="switchPayTab('qris')">Bayar Otomatis QRIS</button>
+                <button type="button" id="pay-tab-btn-qris" class="pay-tab-btn flex-fill active" onclick="switchPayTab('qris')">QRIS (GDC)</button>
+                <button type="button" id="pay-tab-btn-midtrans" class="pay-tab-btn flex-fill" onclick="switchPayTab('midtrans')">QRIS (Midtrans)</button>
                 <button type="button" id="pay-tab-btn-manual" class="pay-tab-btn flex-fill" onclick="switchPayTab('manual')">Transfer Manual</button>
             </div>
 
@@ -128,6 +129,46 @@
                     </div>
 
                     <button type="submit" class="btn btn-ebook btn-block mt-3">Lanjut Bayar dengan QRIS</button>
+                </form>
+            </div>
+
+            <div id="pay-tab-midtrans" style="display: none;">
+                <div class="price-note mb-3">
+                    Bayar otomatis sebesar <span id="price-display-midtrans">Rp. {{ number_format($content->payment_price_original, 0, ',', '.') }}</span> via QRIS Midtrans
+                    (GoPay, OVO, DANA, ShopeePay, m-Banking, dll).<br>
+                    Akun langsung aktif otomatis begitu pembayaran terverifikasi, tanpa perlu upload bukti transfer.
+                </div>
+
+                <form method="POST" action="{{ route('member.register.midtrans.create') }}">
+                    @csrf
+                    <input type="hidden" name="_form" value="midtrans">
+
+                    <div class="form-group boxed">
+                        <div class="input-wrapper">
+                            <input type="text" class="form-control" name="name" placeholder="Nama"
+                                value="{{ old('name') }}" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group boxed mt-2">
+                        <div class="input-wrapper">
+                            <input type="email" class="form-control" name="email" placeholder="Alamat email"
+                                value="{{ old('email') }}" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group boxed mt-2">
+                        <div class="input-wrapper">
+                            <input type="text" inputmode="numeric" class="form-control" id="referral-midtrans" name="referral_code" placeholder="Kode Referral" value="{{ old('referral_code', $referralCode ?? '') }}" required>
+                        </div>
+                        @if (! empty($referralCode) && ! old('referral_code'))
+                            <small class="text-success d-block mt-1">Kode referral otomatis terisi dari link yang Anda buka. Anda tetap bisa mengubahnya bila perlu.</small>
+                        @else
+                            <small class="text-muted d-block mt-1">Wajib diisi dengan kode referral sahabat yang mengajak Anda.</small>
+                        @endif
+                    </div>
+
+                    <button type="submit" class="btn btn-ebook btn-block mt-3">Lanjut Bayar dengan Midtrans</button>
                 </form>
             </div>
 
@@ -190,10 +231,10 @@
     <script src="{{ asset('Mobilekit/HTML/assets/js/base.js') }}"></script>
     <script>
         function switchPayTab(tab) {
-            document.getElementById('pay-tab-qris').style.display = tab === 'qris' ? '' : 'none';
-            document.getElementById('pay-tab-manual').style.display = tab === 'manual' ? '' : 'none';
-            document.getElementById('pay-tab-btn-qris').classList.toggle('active', tab === 'qris');
-            document.getElementById('pay-tab-btn-manual').classList.toggle('active', tab === 'manual');
+            ['qris', 'midtrans', 'manual'].forEach(function (name) {
+                document.getElementById('pay-tab-' + name).style.display = tab === name ? '' : 'none';
+                document.getElementById('pay-tab-btn-' + name).classList.toggle('active', tab === name);
+            });
         }
 
         (function () {
@@ -221,10 +262,12 @@
             }
 
             wireReferralPrice('referral-qris', 'price-display-qris');
+            wireReferralPrice('referral-midtrans', 'price-display-midtrans');
             wireReferralPrice('referral-manual', 'price-display-manual');
 
-            if (@json(old('_form')) === 'manual') {
-                switchPayTab('manual');
+            var submittedForm = @json(old('_form'));
+            if (submittedForm === 'manual' || submittedForm === 'midtrans') {
+                switchPayTab(submittedForm);
             }
         })();
     </script>

@@ -10,6 +10,8 @@ use App\Http\Controllers\Admin\ResellerModerationController;
 use App\Http\Controllers\EbookController;
 use App\Http\Controllers\GdcPayWebhookController;
 use App\Http\Controllers\MemberAuthController;
+use App\Http\Controllers\MidtransPaymentController;
+use App\Http\Controllers\MidtransWebhookController;
 use App\Http\Controllers\QrisPaymentController;
 use App\Http\Controllers\ResellerAuthController;
 use App\Http\Controllers\StoragePublicFileController;
@@ -32,19 +34,28 @@ Route::middleware('guest')->group(function () {
     Route::get('/member/register', [MemberAuthController::class, 'showRegister'])->name('member.register');
     Route::post('/member/register', [MemberAuthController::class, 'register'])->name('member.register.submit');
     Route::post('/member/register/qris', [QrisPaymentController::class, 'createForRegistration'])->name('member.register.qris.create');
+    Route::post('/member/register/midtrans', [MidtransPaymentController::class, 'createForRegistration'])->name('member.register.midtrans.create');
 });
 
 Route::post('/member/logout', [MemberAuthController::class, 'logout'])->name('member.logout');
 Route::get('/member/payment', [MemberAuthController::class, 'showPayment'])->name('member.payment');
 Route::post('/member/payment', [MemberAuthController::class, 'submitPayment'])->name('member.payment.submit');
 Route::post('/member/payment/qris', [QrisPaymentController::class, 'createForPayment'])->name('member.payment.qris.create');
+Route::post('/member/payment/midtrans', [MidtransPaymentController::class, 'createForPayment'])->name('member.payment.midtrans.create');
 
 Route::get('/member/qris/{reference}', [QrisPaymentController::class, 'show'])->name('member.qris.show');
 Route::get('/member/qris/{reference}/status', [QrisPaymentController::class, 'status'])->name('member.qris.status');
 
+Route::get('/member/midtrans/{orderId}', [MidtransPaymentController::class, 'show'])->name('member.midtrans.show');
+Route::get('/member/midtrans/{orderId}/status', [MidtransPaymentController::class, 'status'])->name('member.midtrans.status');
+
 // Server-to-server "QRIS Payment Notification" webhook, registered in the GDC Pay
 // partner dashboard (Pengaturan > Integrasi). Must be reachable from the internet.
 Route::post('/webhooks/gdcpay/qris-notification', [GdcPayWebhookController::class, 'qrisNotification'])->name('gdcpay.webhook.qris');
+
+// Midtrans HTTP notification, registered in Midtrans dashboard (Settings > Configuration >
+// Payment Notification URL). Must be reachable from the internet.
+Route::post('/webhooks/midtrans/notification', [MidtransWebhookController::class, 'notification'])->name('midtrans.webhook.notification');
 
 Route::get('/storage-public/{path}', [StoragePublicFileController::class, 'show'])
     ->where('path', '.*')

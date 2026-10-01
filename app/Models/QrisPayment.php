@@ -57,6 +57,22 @@ class QrisPayment extends Model
     }
 
     /**
+     * Compare the amount GDC confirms as paid against what we requested at qr-mpm-generate
+     * time. The QR is "dynamic" (the amount is embedded in the QR payload itself, tag 54 of
+     * the EMV QRIS spec) so a compliant wallet app cannot let the payer change it - but this
+     * check is a second line of defense before we grant access, in case of a bug on GDC's
+     * side or a non-compliant channel.
+     */
+    public function receivedAmountMatches(?array $resultAmount): bool
+    {
+        if (! $resultAmount || ! isset($resultAmount['value'])) {
+            return false;
+        }
+
+        return (int) round((float) $resultAmount['value']) === (int) $this->amount;
+    }
+
+    /**
      * Mark this QRIS payment as paid and activate the related member.
      * Idempotent so both the browser-polling path and the GDC webhook can call it safely.
      */

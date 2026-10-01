@@ -55,6 +55,21 @@ class GdcPayWebhookController extends Controller
         $statusDesc = (string) ($payload['transactionStatusDesc'] ?? $payload['statusDesc'] ?? '');
 
         if (GdcPayService::isPaidStatus($statusCode, $statusDesc)) {
+            if (! $qrisPayment->receivedAmountMatches($payload['amount'] ?? null)) {
+                Log::warning('gdcpay.qris_notification.amount_mismatch', [
+                    'qris_payment_id' => $qrisPayment->id,
+                    'reference_no' => $qrisPayment->reference_no,
+                    'expected_amount' => $qrisPayment->amount,
+                    'received_amount' => $payload['amount'] ?? null,
+                ]);
+
+                if ($qrisPayment->status === 'pending') {
+                    $qrisPayment->update(['status' => 'failed']);
+                }
+
+                return response()->json(['responseCode' => '2005600', 'responseMessage' => 'successful']);
+            }
+
             $qrisPayment->markAsPaid();
         } elseif (GdcPayService::isFailedStatus($statusCode, $statusDesc) && $qrisPayment->status === 'pending') {
             $qrisPayment->update(['status' => 'failed']);

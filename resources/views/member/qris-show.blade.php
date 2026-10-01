@@ -8,7 +8,6 @@
     <meta name="theme-color" content="#1f66ba" />
     <title>Bayar dengan QRIS</title>
     <link rel="stylesheet" href="{{ asset('Mobilekit/HTML/assets/css/style.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/lib/browser.min.js"></script>
     <style>
         body {
             min-height: 100vh;
@@ -35,31 +34,25 @@
             padding: 22px;
         }
 
-        #qris-canvas-wrapper {
+        #qris-image-wrapper {
             display: flex;
             flex-direction: column;
             align-items: center;
             margin: 8px 0 16px;
         }
 
-        #qris-canvas-wrapper canvas {
-            display: none;
-        }
-
-        #qris-img {
-            max-width: 260px;
+        #qris-image-wrapper img {
+            max-width: 280px;
             width: 100%;
             height: auto;
             border-radius: 8px;
         }
 
         #qris-download-link {
-            display: none;
             margin-top: 10px;
         }
 
         #qris-fallback-text {
-            display: none;
             word-break: break-all;
             font-size: 11px;
             background: #f5f5f5;
@@ -93,14 +86,19 @@
                 <div id="qris-status-badge" class="alert alert-warning">Menunggu pembayaran...</div>
             @endif
 
-            <div id="qris-canvas-wrapper" @if ($qrisPayment->status !== 'pending') style="display: none;" @endif>
-                <canvas id="qris-canvas"></canvas>
-                <img id="qris-img" alt="QR Code QRIS" style="display: none;">
-                <a id="qris-download-link" href="#" download="qris-pembayaran.jpg" class="btn btn-outline-primary btn-sm">Unduh Gambar QR (JPG)</a>
-                <small class="text-muted d-block mt-1">Di HP: bisa juga tekan &amp; tahan gambar QR di atas untuk simpan ke galeri.</small>
-            </div>
-
-            <div id="qris-fallback-text"></div>
+            @if ($qrisPayment->status === 'pending')
+                @if ($qrDataUri)
+                    <div id="qris-image-wrapper">
+                        <img src="{{ $qrDataUri }}" alt="QR Code QRIS">
+                        <a id="qris-download-link" href="{{ $qrDataUri }}" download="qris-pembayaran.png" class="btn btn-outline-primary btn-sm">Unduh Gambar QR</a>
+                        <small class="text-muted d-block mt-1">Di HP: bisa juga tekan &amp; tahan gambar QR di atas untuk simpan ke galeri.</small>
+                    </div>
+                @else
+                    <div id="qris-fallback-text">
+                        QR code gagal ditampilkan. Salin kode berikut dan buka lewat aplikasi e-wallet Anda: {{ $qrisPayment->qr_content }}
+                    </div>
+                @endif
+            @endif
 
             <p class="mb-1">Total pembayaran: <strong>Rp {{ number_format($qrisPayment->amount, 0, ',', '.') }}</strong></p>
             <p class="text-muted small">
@@ -115,9 +113,12 @@
     <script>
         (function () {
             var isPending = @json($qrisPayment->status === 'pending');
-            var qrContent = @json($qrisPayment->qr_content);
             var statusUrl = @json(route('member.qris.status', $qrisPayment->reference_no));
             var badge = document.getElementById('qris-status-badge');
+
+            if (!isPending) {
+                return;
+            }
 
             function setBadge(className, text) {
                 badge.className = 'alert ' + className;
@@ -151,55 +152,7 @@
                     });
             }
 
-            // Polling must run independently of QR rendering below - a failed/slow CDN
-            // script load must never stop the status check loop from starting.
-            if (isPending) {
-                setTimeout(poll, 4000);
-            }
-
-            if (!isPending) {
-                return;
-            }
-
-            try {
-                var canvas = document.getElementById('qris-canvas');
-
-                if (typeof QRCode === 'undefined') {
-                    throw new Error('QRCode library failed to load');
-                }
-
-                QRCode.toCanvas(canvas, qrContent, { width: 260, margin: 1 }, function (error) {
-                    if (error) {
-                        showFallbackText();
-                        return;
-                    }
-
-                    try {
-                        var dataUrl = canvas.toDataURL('image/jpeg', 0.92);
-                        var img = document.getElementById('qris-img');
-                        var downloadLink = document.getElementById('qris-download-link');
-
-                        img.src = dataUrl;
-                        img.style.display = 'block';
-                        downloadLink.href = dataUrl;
-                        downloadLink.style.display = 'inline-block';
-                    } catch (conversionError) {
-                        // toDataURL can fail on very old browsers - canvas is already
-                        // visible as a fallback via CSS (see qris-canvas-wrapper canvas rule
-                        // being overridden below) so the QR is still scannable either way.
-                        canvas.style.display = 'block';
-                    }
-                });
-            } catch (error) {
-                showFallbackText();
-            }
-
-            function showFallbackText() {
-                document.getElementById('qris-canvas-wrapper').style.display = 'none';
-                var fallback = document.getElementById('qris-fallback-text');
-                fallback.style.display = 'block';
-                fallback.textContent = 'QR code gagal ditampilkan (koneksi bermasalah). Salin kode berikut dan buka lewat aplikasi e-wallet Anda: ' + qrContent;
-            }
+            setTimeout(poll, 4000);
         })();
     </script>
 </body>

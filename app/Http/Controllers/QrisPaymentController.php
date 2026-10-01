@@ -6,7 +6,9 @@ use App\Models\EbookContent;
 use App\Models\Member;
 use App\Models\QrisPayment;
 use App\Services\GdcPayService;
+use Endroid\QrCode\Builder\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Throwable;
@@ -100,8 +102,19 @@ class QrisPaymentController extends Controller
             return redirect($this->successRedirectUrl($qrisPayment))->with('status', 'Pembayaran sudah diterima. Terima kasih!');
         }
 
+        $qrDataUri = null;
+
+        if ($qrisPayment->status === 'pending' && $qrisPayment->qr_content) {
+            try {
+                $qrDataUri = (new Builder())->build(data: $qrisPayment->qr_content, size: 320, margin: 10)->getDataUri();
+            } catch (Throwable $exception) {
+                report($exception);
+            }
+        }
+
         return view('member.qris-show', [
             'qrisPayment' => $qrisPayment,
+            'qrDataUri' => $qrDataUri,
             'cancelUrl' => $qrisPayment->flow === 'register' ? route('member.register') : route('member.payment'),
         ]);
     }
@@ -184,6 +197,18 @@ class QrisPaymentController extends Controller
         $statusDesc = (string) ($result['transactionStatusDesc'] ?? '');
 
         if (GdcPayService::isPaidStatus($statusCode, $statusDesc)) {
+            if (! $qrisPayment->receivedAmountMatches($result['amount'] ?? null)) {
+                Log::warning('gdcpay.qris_amount_mismatch', [
+                    'qris_payment_id' => $qrisPayment->id,
+                    'reference_no' => $qrisPayment->reference_no,
+                    'expected_amount' => $qrisPayment->amount,
+                    'received_amount' => $result['amount'] ?? null,
+                ]);
+                $qrisPayment->update(['status' => 'failed']);
+
+                return;
+            }
+
             $qrisPayment->markAsPaid();
 
             return;
