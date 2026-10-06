@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -42,30 +43,101 @@ class GdcPayService
         ], (string) Str::uuid());
     }
 
+    public function balanceInquiry(string $partnerReferenceNo): array
+    {
+        return $this->snapPost('/v1.0/balance-inquiry', [
+            'partnerReferenceNo' => $partnerReferenceNo,
+            'additionalInfo' => (object) [],
+        ], (string) Str::uuid());
+    }
+
+    public function bankAccountInquiry(string $partnerReferenceNo, int $amount, string $beneficiaryAccountNumber, string $beneficiaryBankCode): array
+    {
+        return $this->snapPost('/v1.0/emoney/bank-account-inquiry', [
+            'partnerReferenceNo' => $partnerReferenceNo,
+            'customerNumber' => $this->config['account_number'],
+            'amount' => [
+                'value' => number_format($amount, 2, '.', ''),
+                'currency' => 'IDR',
+            ],
+            'beneficiaryAccountNumber' => $beneficiaryAccountNumber,
+            'additionalInfo' => [
+                'beneficiaryBankCode' => $beneficiaryBankCode,
+                'remarks' => 'UAT test',
+            ],
+        ], (string) Str::uuid());
+    }
+
+    public function transferBank(string $partnerReferenceNo, int $amount, string $beneficiaryAccountNumber, string $beneficiaryBankCode): array
+    {
+        return $this->snapPost('/v1.0/emoney/transfer-bank', [
+            'partnerReferenceNo' => $partnerReferenceNo,
+            'customerNumber' => $this->config['account_number'],
+            'amount' => [
+                'value' => number_format($amount, 2, '.', ''),
+                'currency' => 'IDR',
+            ],
+            'beneficiaryAccountNumber' => $beneficiaryAccountNumber,
+            'beneficiaryBankCode' => $beneficiaryBankCode,
+            'additionalInfo' => [
+                'remarks' => 'UAT test',
+            ],
+        ], (string) Str::uuid());
+    }
+
+    public function createVirtualAccount(string $trxId, int $amount, string $virtualAccountName): array
+    {
+        return $this->snapPost('/v1.0/transfer-va/create-va', [
+            'virtualAccountName' => $virtualAccountName,
+            'expiredDate' => now()->addDay()->format('Y-m-d\TH:i:sP'),
+            'trxId' => $trxId,
+            'virtualAccountTrxType' => 'C',
+            'totalAmount' => [
+                'value' => number_format($amount, 2, '.', ''),
+                'currency' => 'IDR',
+            ],
+            'additionalInfo' => [
+                'accountNumber' => $this->config['account_number'],
+                'bankCode' => '014',
+            ],
+        ], (string) Str::uuid());
+    }
+
+    public function vaStatus(string $virtualAccountNo, string $paymentRequestId): array
+    {
+        return $this->snapPost('/v1.0/transfer-va/status', [
+            'virtualAccountNo' => $virtualAccountNo,
+            'paymentRequestId' => $paymentRequestId,
+            'inquiryRequestId' => '',
+        ], (string) Str::uuid());
+    }
+
+    public function transactionHistoryList(string $fromDateTime, string $toDateTime, int $pageSize = 5, int $pageNumber = 1): array
+    {
+        return $this->snapPost('/v1.0/transaction-history-list', [
+            'fromDateTime' => $fromDateTime,
+            'toDateTime' => $toDateTime,
+            'pageSize' => $pageSize,
+            'pageNumber' => $pageNumber,
+            'additionalInfo' => [
+                'status' => '',
+                'type' => 'PAYMENT',
+            ],
+        ], (string) Str::uuid());
+    }
+
+    public function transactionHistoryDetail(string $originalPartnerReferenceNo): array
+    {
+        return $this->snapPost('/v1.0/transaction-history-detail', [
+            'originalPartnerReferenceNo' => $originalPartnerReferenceNo,
+            'originalReferenceNo' => '',
+            'additionalInfo' => (object) [],
+        ], (string) Str::uuid());
+    }
+
     private function snapPost(string $path, array $body, string $externalId): array
     {
-        $token = $this->getAccessToken();
-        $timestamp = now()->format('Y-m-d\TH:i:sP');
-        $payloadJson = json_encode($body, JSON_UNESCAPED_SLASHES);
-        $payloadHash = hash('sha256', $payloadJson);
-
-        // SNAP symmetric signature: HMAC-SHA512 keyed with the client secret,
-        // per neo-docs.gdc.co.id "<METHOD>:<PATH>:<TOKEN>:<PAYLOAD_HASH>:<TIMESTAMP>".
-        // PATH here is the path without the /snap prefix, matching the docs example.
-        $stringToSign = "POST:{$path}:{$token}:{$payloadHash}:{$timestamp}";
-        $signature = base64_encode(hash_hmac('sha512', $stringToSign, $this->config['client_secret'], true));
-
-        $response = Http::baseUrl($this->config['base_url'])
-            ->withHeaders(array_filter([
-                'Authorization' => 'Bearer ' . $token,
-                'X-TIMESTAMP' => $timestamp,
-                'X-PARTNER-ID' => $this->config['partner_id'],
-                'X-EXTERNAL-ID' => $externalId,
-                'X-SIGNATURE' => $signature,
-                'CHANNEL-ID' => $this->config['channel_id'] ?: null,
-            ]))
-            ->withBody($payloadJson, 'application/json')
-            ->post('/snap' . $path);
+        $response = $this->rawSnapCall($path, $body, $externalId);
 
         if ($response->failed()) {
             throw new RuntimeException("GDC Pay: HTTP {$response->status()} pada {$path} - {$response->body()}");
@@ -79,6 +151,74 @@ class GdcPayService
         }
 
         return $data ?? [];
+    }
+
+    /**
+     * Low-level SNAP call that returns the raw HTTP response instead of throwing,
+     * so callers (like the GDC UAT test-case runner) can inspect both success and
+     * error responses faithfully. Overrides exist only to reproduce negative test
+     * scenarios (bad token, bad signature) required by GDC's certification suite.
+     */
+    public function rawSnapCall(
+        string $path,
+        array $body,
+        string $externalId,
+        ?string $tokenOverride = null,
+        ?string $signatureOverride = null,
+    ): Response {
+        $token = $tokenOverride ?? $this->getAccessToken();
+        $timestamp = now()->format('Y-m-d\TH:i:sP');
+        $payloadJson = json_encode($body, JSON_UNESCAPED_SLASHES);
+
+        // SNAP symmetric signature: HMAC-SHA512 keyed with the client secret,
+        // per neo-docs.gdc.co.id "<METHOD>:<PATH>:<TOKEN>:<PAYLOAD_HASH>:<TIMESTAMP>".
+        // PATH here is the path without the /snap prefix, matching the docs example.
+        $payloadHash = hash('sha256', $payloadJson);
+        $stringToSign = "POST:{$path}:{$token}:{$payloadHash}:{$timestamp}";
+        $signature = $signatureOverride ?? base64_encode(hash_hmac('sha512', $stringToSign, $this->config['client_secret'], true));
+
+        return Http::baseUrl($this->config['base_url'])
+            ->withHeaders(array_filter([
+                'Authorization' => 'Bearer ' . $token,
+                'X-TIMESTAMP' => $timestamp,
+                'X-PARTNER-ID' => $this->config['partner_id'],
+                'X-EXTERNAL-ID' => $externalId,
+                'X-SIGNATURE' => $signature,
+                'CHANNEL-ID' => $this->config['channel_id'] ?: null,
+            ]))
+            ->withBody($payloadJson, 'application/json')
+            ->post('/snap' . $path);
+    }
+
+    /**
+     * Low-level access-token call that returns the raw HTTP response instead of
+     * throwing. Overrides exist only to reproduce the "invalid client" and
+     * "invalid signature" negative test cases required by GDC's certification suite.
+     */
+    public function rawAccessTokenCall(?string $clientKeyOverride = null, ?string $signatureOverride = null): Response
+    {
+        $clientKey = $clientKeyOverride ?? $this->config['client_key'];
+        $timestamp = now()->format('Y-m-d\TH:i:sP');
+
+        if ($signatureOverride !== null) {
+            $signatureBase64 = $signatureOverride;
+        } else {
+            $stringToSign = $clientKey . '|' . $timestamp;
+            $privateKey = openssl_pkey_get_private(file_get_contents($this->config['private_key_path']));
+            openssl_sign($stringToSign, $signature, $privateKey, OPENSSL_ALGO_SHA256);
+            $signatureBase64 = base64_encode($signature);
+        }
+
+        return Http::baseUrl($this->config['base_url'])
+            ->withHeaders([
+                'Content-Type' => 'application/json',
+                'X-Timestamp' => $timestamp,
+                'Client-Key' => $clientKey,
+                'X-Signature' => $signatureBase64,
+            ])
+            ->post('/snap/v1.0/access-token/b2b', [
+                'grantType' => 'client_credentials',
+            ]);
     }
 
     /**
@@ -107,32 +247,7 @@ class GdcPayService
     public function getAccessToken(): string
     {
         return Cache::remember('gdcpay_access_token', 750, function () {
-            $timestamp = now()->format('Y-m-d\TH:i:sP');
-            $stringToSign = $this->config['client_key'] . '|' . $timestamp;
-
-            $privateKeyPath = $this->config['private_key_path'];
-            if (! $privateKeyPath || ! is_file($privateKeyPath)) {
-                throw new RuntimeException("GDC Pay: file private key tidak ditemukan ({$privateKeyPath}). Set GDCPAY_PRIVATE_KEY_PATH di .env.");
-            }
-
-            $privateKey = openssl_pkey_get_private(file_get_contents($privateKeyPath));
-            if (! $privateKey) {
-                throw new RuntimeException('GDC Pay: private key tidak valid, periksa isi file PEM.');
-            }
-
-            // Asymmetric signature (RSA-SHA256 / PKCS#1 v1.5) over "clientKey|timestamp".
-            openssl_sign($stringToSign, $signature, $privateKey, OPENSSL_ALGO_SHA256);
-
-            $response = Http::baseUrl($this->config['base_url'])
-                ->withHeaders([
-                    'Content-Type' => 'application/json',
-                    'X-Timestamp' => $timestamp,
-                    'Client-Key' => $this->config['client_key'],
-                    'X-Signature' => base64_encode($signature),
-                ])
-                ->post('/snap/v1.0/access-token/b2b', [
-                    'grantType' => 'client_credentials',
-                ]);
+            $response = $this->rawAccessTokenCall();
 
             if ($response->failed()) {
                 throw new RuntimeException("GDC Pay: gagal mengambil access token (HTTP {$response->status()}) - {$response->body()}");

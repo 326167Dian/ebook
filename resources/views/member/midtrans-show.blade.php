@@ -82,6 +82,17 @@
                     <a id="qris-download-link" href="{{ $payment->qr_image_url }}" download="qris-midtrans.png" class="btn btn-outline-primary btn-sm">Unduh Gambar QR</a>
                     <small class="text-muted d-block mt-1">Di HP: bisa juga tekan &amp; tahan gambar QR di atas untuk simpan ke galeri.</small>
                 </div>
+
+                @if (! config('midtrans.is_production'))
+                    <div class="text-start mt-2 mb-3" style="font-size: 12px;">
+                        <label class="form-label mb-1">Mode sandbox - URL gambar QR (untuk simulator Midtrans):</label>
+                        <div class="input-group">
+                            <input type="text" id="qris-url-copy" class="form-control form-control-sm" value="{{ $payment->qr_image_url }}" readonly onclick="this.select()">
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="copyQrisUrl()">Salin</button>
+                        </div>
+                        <a href="https://simulator.sandbox.midtrans.com/v2/qris/index" target="_blank" rel="noopener" class="d-block mt-1">Buka Simulator QRIS Midtrans &rarr;</a>
+                    </div>
+                @endif
             @endif
 
             <p class="mb-1">Total pembayaran: <strong>Rp {{ number_format($payment->amount, 0, ',', '.') }}</strong></p>
@@ -95,6 +106,15 @@
     </div>
 
     <script>
+        function copyQrisUrl() {
+            var input = document.getElementById('qris-url-copy');
+            input.select();
+            input.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(input.value).catch(function () {
+                document.execCommand('copy');
+            });
+        }
+
         (function () {
             var isPending = @json($payment->status === 'pending');
             var statusUrl = @json(route('member.midtrans.status', $payment->order_id));
