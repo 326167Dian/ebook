@@ -87,12 +87,13 @@
             @endif
 
             <div class="d-flex mb-3" style="gap: 8px;">
-                <button type="button" id="pay-tab-btn-qris" class="pay-tab-btn flex-fill active" onclick="switchPayTab('qris')">QRIS (GDC)</button>
-                <button type="button" id="pay-tab-btn-midtrans" class="pay-tab-btn flex-fill" onclick="switchPayTab('midtrans')">QRIS (Midtrans)</button>
+                {{-- GDC tab disabled while focusing on Midtrans. Form markup below is kept intact for easy re-enable. --}}
+                <button type="button" id="pay-tab-btn-midtrans" class="pay-tab-btn flex-fill active" onclick="switchPayTab('midtrans')">Bayar Otomatis QRIS</button>
                 <button type="button" id="pay-tab-btn-manual" class="pay-tab-btn flex-fill" onclick="switchPayTab('manual')">Transfer Manual</button>
             </div>
 
-            <div id="pay-tab-qris">
+            @if (false)
+            <div id="pay-tab-qris" style="display: none;">
                 <div class="price-note mb-3">
                     Bayar otomatis sebesar <span id="price-display-qris">Rp. {{ number_format($content->payment_price_original, 0, ',', '.') }}</span> via QRIS
                     (GoPay, OVO, DANA, ShopeePay, m-Banking, dll).<br>
@@ -131,8 +132,9 @@
                     <button type="submit" class="btn btn-ebook btn-block mt-3">Lanjut Bayar dengan QRIS</button>
                 </form>
             </div>
+            @endif
 
-            <div id="pay-tab-midtrans" style="display: none;">
+            <div id="pay-tab-midtrans">
                 <div class="price-note mb-3">
                     Bayar otomatis sebesar <span id="price-display-midtrans">Rp. {{ number_format($content->payment_price_original, 0, ',', '.') }}</span> via QRIS Midtrans
                     (GoPay, OVO, DANA, ShopeePay, m-Banking, dll).<br>
@@ -231,7 +233,7 @@
     <script src="{{ asset('Mobilekit/HTML/assets/js/base.js') }}"></script>
     <script>
         function switchPayTab(tab) {
-            ['qris', 'midtrans', 'manual'].forEach(function (name) {
+            ['midtrans', 'manual'].forEach(function (name) {
                 document.getElementById('pay-tab-' + name).style.display = tab === name ? '' : 'none';
                 document.getElementById('pay-tab-btn-' + name).classList.toggle('active', tab === name);
             });
@@ -261,12 +263,11 @@
                 updatePrice();
             }
 
-            wireReferralPrice('referral-qris', 'price-display-qris');
             wireReferralPrice('referral-midtrans', 'price-display-midtrans');
             wireReferralPrice('referral-manual', 'price-display-manual');
 
             var submittedForm = @json(old('_form'));
-            if (submittedForm === 'manual' || submittedForm === 'midtrans') {
+            if (submittedForm === 'manual') {
                 switchPayTab(submittedForm);
             }
         })();
