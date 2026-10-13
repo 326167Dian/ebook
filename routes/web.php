@@ -53,6 +53,11 @@ Route::get('/member/midtrans/{orderId}/status', [MidtransPaymentController::clas
 // partner dashboard (Pengaturan > Integrasi). Must be reachable from the internet.
 Route::post('/webhooks/gdcpay/qris-notification', [GdcPayWebhookController::class, 'qrisNotification'])->name('gdcpay.webhook.qris');
 
+// Mirrors GDC's own SNAP token endpoint path, but on OUR domain: GDC calls this to
+// authenticate itself to us before delivering the QRIS notification above. Path is
+// fixed by the SNAP standard (/v1.0/access-token/b2b, no custom prefix).
+Route::post('/v1.0/access-token/b2b', [GdcPayWebhookController::class, 'issueAccessToken'])->name('gdcpay.webhook.token');
+
 // Midtrans HTTP notification, registered in Midtrans dashboard (Settings > Configuration >
 // Payment Notification URL). Must be reachable from the internet.
 Route::post('/webhooks/midtrans/notification', [MidtransWebhookController::class, 'notification'])->name('midtrans.webhook.notification');

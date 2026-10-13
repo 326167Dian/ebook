@@ -21,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'webhooks/gdcpay/*',
             'webhooks/midtrans/*',
+            'v1.0/access-token/b2b',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

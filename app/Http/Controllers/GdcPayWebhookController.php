@@ -6,18 +6,45 @@ use App\Models\QrisPayment;
 use App\Services\GdcPayService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class GdcPayWebhookController extends Controller
 {
     /**
+     * SNAP requires GDC to obtain its own access token from us ("B2B" token endpoint,
+     * mirrored at /v1.0/access-token/b2b on our domain) before it will POST the actual
+     * QRIS payment notification. Discovered empirically: GDC's notifier called this exact
+     * path at our webhook domain's root and gave up with no retry once it got a 404, which
+     * is the real cause of "callback belum di implementasi oleh partner". We don't hold
+     * GDC's public key to verify their signature, so for now we log the request for later
+     * hardening and issue an opaque bearer token GDC can echo back on the notification call
+     * (qrisNotification() below does not currently validate that token).
+     */
+    public function issueAccessToken(Request $request)
+    {
+        Log::info('gdcpay.access_token.requested', [
+            'payload' => $request->all(),
+            'headers' => $request->headers->all(),
+        ]);
+
+        return response()->json([
+            'responseCode' => '2007300',
+            'responseMessage' => 'Successful',
+            'accessToken' => (string) Str::uuid(),
+            'tokenType' => 'Bearer',
+            'expiresIn' => '900',
+        ]);
+    }
+
+    /**
      * Receives the "QRIS Payment Notification" server-to-server callback from GDC Pay.
      *
-     * The exact payload shape is not documented (neo-docs.gdc.co.id only documents the
-     * qr-mpm-generate/qr-mpm-query request/response bodies), so this logs the raw body
-     * on every call and matches loosely against the field names used by those endpoints
-     * (partnerReferenceNo/referenceNo + latestTransactionStatus/transactionStatusDesc).
-     * Adjust the field lookups below once a real sandbox notification has been observed
-     * in the log.
+     * Field lookups below are confirmed against a real sandbox notification observed in
+     * the log (2026-10-13), e.g.:
+     * {"originalPartnerReferenceNo":"...","originalReferenceNo":"...","latestTransactionStatus":"00",
+     *  "transactionStatusDesc":"SUCCESS","paidAmount":{"value":"10000.00","currency":"IDR"},
+     *  "feeAmount":{...},"additionalInfo":{"paymentDate":"...","paymentMethod":"qrisac","transactionType":"deposit"}}
+     * Notably the paid amount comes in "paidAmount", not "amount" like the qr-mpm-query response.
      */
     public function qrisNotification(Request $request)
     {
@@ -55,12 +82,14 @@ class GdcPayWebhookController extends Controller
         $statusDesc = (string) ($payload['transactionStatusDesc'] ?? $payload['statusDesc'] ?? '');
 
         if (GdcPayService::isPaidStatus($statusCode, $statusDesc)) {
-            if (! $qrisPayment->receivedAmountMatches($payload['amount'] ?? null)) {
+            $receivedAmount = $payload['paidAmount'] ?? $payload['amount'] ?? null;
+
+            if (! $qrisPayment->receivedAmountMatches($receivedAmount)) {
                 Log::warning('gdcpay.qris_notification.amount_mismatch', [
                     'qris_payment_id' => $qrisPayment->id,
                     'reference_no' => $qrisPayment->reference_no,
                     'expected_amount' => $qrisPayment->amount,
-                    'received_amount' => $payload['amount'] ?? null,
+                    'received_amount' => $receivedAmount,
                 ]);
 
                 if ($qrisPayment->status === 'pending') {

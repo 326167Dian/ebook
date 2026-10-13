@@ -12,6 +12,15 @@ class GdcPayService
 {
     private array $config;
 
+    /**
+     * Full detail (URL, headers, body) of the most recent outgoing request made
+     * by rawSnapCall()/rawAccessTokenCall(), so callers like the GDC UAT runner
+     * can report the exact Request alongside the Response.
+     *
+     * @var array{url: string, headers: array<string, string>, body: string}|null
+     */
+    public ?array $lastRequestDebug = null;
+
     public function __construct()
     {
         $this->config = config('gdcpay');
@@ -177,15 +186,23 @@ class GdcPayService
         $stringToSign = "POST:{$path}:{$token}:{$payloadHash}:{$timestamp}";
         $signature = $signatureOverride ?? base64_encode(hash_hmac('sha512', $stringToSign, $this->config['client_secret'], true));
 
+        $headers = array_filter([
+            'Authorization' => 'Bearer ' . $token,
+            'X-TIMESTAMP' => $timestamp,
+            'X-PARTNER-ID' => $this->config['partner_id'],
+            'X-EXTERNAL-ID' => $externalId,
+            'X-SIGNATURE' => $signature,
+            'CHANNEL-ID' => $this->config['channel_id'] ?: null,
+        ]);
+
+        $this->lastRequestDebug = [
+            'url' => rtrim($this->config['base_url'], '/') . '/snap' . $path,
+            'headers' => array_merge(['Content-Type' => 'application/json'], $headers),
+            'body' => $payloadJson,
+        ];
+
         return Http::baseUrl($this->config['base_url'])
-            ->withHeaders(array_filter([
-                'Authorization' => 'Bearer ' . $token,
-                'X-TIMESTAMP' => $timestamp,
-                'X-PARTNER-ID' => $this->config['partner_id'],
-                'X-EXTERNAL-ID' => $externalId,
-                'X-SIGNATURE' => $signature,
-                'CHANNEL-ID' => $this->config['channel_id'] ?: null,
-            ]))
+            ->withHeaders($headers)
             ->withBody($payloadJson, 'application/json')
             ->post('/snap' . $path);
     }
@@ -209,16 +226,23 @@ class GdcPayService
             $signatureBase64 = base64_encode($signature);
         }
 
+        $headers = [
+            'Content-Type' => 'application/json',
+            'X-Timestamp' => $timestamp,
+            'Client-Key' => $clientKey,
+            'X-Signature' => $signatureBase64,
+        ];
+        $body = ['grantType' => 'client_credentials'];
+
+        $this->lastRequestDebug = [
+            'url' => rtrim($this->config['base_url'], '/') . '/snap/v1.0/access-token/b2b',
+            'headers' => $headers,
+            'body' => json_encode($body, JSON_UNESCAPED_SLASHES),
+        ];
+
         return Http::baseUrl($this->config['base_url'])
-            ->withHeaders([
-                'Content-Type' => 'application/json',
-                'X-Timestamp' => $timestamp,
-                'Client-Key' => $clientKey,
-                'X-Signature' => $signatureBase64,
-            ])
-            ->post('/snap/v1.0/access-token/b2b', [
-                'grantType' => 'client_credentials',
-            ]);
+            ->withHeaders($headers)
+            ->post('/snap/v1.0/access-token/b2b', $body);
     }
 
     /**
