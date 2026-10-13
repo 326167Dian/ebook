@@ -112,7 +112,7 @@
             <div class="d-flex mb-3" style="gap: 8px;">
                 {{-- GDC tab disabled while focusing on Midtrans. Form markup below is kept intact for easy re-enable. --}}
                 <button type="button" id="pay-tab-btn-midtrans" class="pay-tab-btn flex-fill active" onclick="switchPayTab('midtrans')">Bayar Otomatis QRIS</button>
-                <button type="button" id="pay-tab-btn-manual" class="pay-tab-btn flex-fill" onclick="switchPayTab('manual')">Transfer Manual</button>
+                <button type="button" id="pay-tab-btn-manual" class="pay-tab-btn flex-fill" onclick="switchPayTab('manual')">QRIS Statis</button>
             </div>
 
             @if (false)
@@ -133,8 +133,6 @@
                         </div>
                         @if (! empty($referralCode) && ! old('referral_code'))
                             <small class="text-success d-block mt-1">Kode referral otomatis terisi dari link yang Anda buka. Anda tetap bisa mengubahnya bila perlu.</small>
-                        @else
-                            <small class="text-muted d-block mt-1">Wajib diisi dengan kode referral dari reseller yang mengajak Anda.</small>
                         @endif
                     </div>
 
@@ -160,8 +158,6 @@
                         </div>
                         @if (! empty($referralCode) && ! old('referral_code'))
                             <small class="text-success d-block mt-1">Kode referral otomatis terisi dari link yang Anda buka. Anda tetap bisa mengubahnya bila perlu.</small>
-                        @else
-                            <small class="text-muted d-block mt-1">Wajib diisi dengan kode referral dari reseller yang mengajak Anda.</small>
                         @endif
                     </div>
 
@@ -170,12 +166,27 @@
             </div>
 
             <div id="pay-tab-manual" style="display: none;">
+                @if (false)
+                {{-- Keterangan transfer bank disembunyikan, fokus ke QRIS statis saja (kode disimpan untuk diaktifkan lagi nanti). --}}
                 <div class="status-note mb-3">
                     Upload bukti transfer sebesar <span id="price-display-manual">Rp. {{ number_format($content->payment_price_original, 0, ',', '.') }}</span>.<br>
                     Ke No Rekening berikut ini<br>
                     <strong>{{ $content->payment_bank_name }} {{ $content->payment_bank_account_number }} a/n {{ $content->payment_bank_account_holder }}</strong><br>
                     {{ $content->payment_note }}
                 </div>
+                @endif
+
+                @if (!empty($content->payment_qris_image_path))
+                    <div class="status-note mb-3">
+                        Bayar sebesar <span id="price-display-manual">Rp. {{ number_format($content->payment_price_original, 0, ',', '.') }}</span><br>
+                        Akun akan aktif maksimal 1 x 24 jam.
+                    </div>
+
+                    <div class="text-center mb-3">
+                        <img src="{{ asset($content->payment_qris_image_path) }}" alt="QRIS Statis" style="max-width: 260px; width: 100%; height: auto; border-radius: 8px; border: 1px solid #e0e0e0;">
+                        <a href="{{ asset($content->payment_qris_image_path) }}" download class="btn btn-outline-primary btn-sm d-block mt-2 mx-auto" style="max-width: 200px;">Unduh Gambar QRIS</a>
+                    </div>
+                @endif
 
                 <form method="POST" action="{{ route('member.payment.submit') }}" enctype="multipart/form-data">
                     @csrf
@@ -194,8 +205,6 @@
                         </div>
                         @if (! empty($referralCode) && ! old('referral_code'))
                             <small class="text-success d-block mt-1">Kode referral otomatis terisi dari link yang Anda buka. Anda tetap bisa mengubahnya bila perlu.</small>
-                        @else
-                            <small class="text-muted d-block mt-1">Wajib diisi dengan kode referral dari reseller yang mengajak Anda.</small>
                         @endif
                     </div>
 
@@ -233,6 +242,10 @@
             function wireReferralPrice(inputId, displayId) {
                 var input = document.getElementById(inputId);
                 var display = document.getElementById(displayId);
+
+                if (!input || !display) {
+                    return;
+                }
 
                 function updatePrice() {
                     if (input.value.trim().length > 0) {

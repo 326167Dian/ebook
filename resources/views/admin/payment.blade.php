@@ -74,7 +74,7 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('admin.payment.update') }}">
+                <form method="POST" action="{{ route('admin.payment.update') }}" enctype="multipart/form-data">
                     @csrf
 
                     <div class="row g-2">
@@ -110,6 +110,22 @@
                         <label class="form-label">Keterangan Pembayaran</label>
                         <input type="text" class="form-control" name="payment_note" maxlength="255" value="{{ old('payment_note', $content->payment_note) }}" required>
                         <small class="text-muted d-block mt-1">Kalimat yang tampil setelah harga di halaman verifikasi pembayaran.</small>
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <label class="form-label">Gambar QRIS Statis</label>
+                        <input type="file" class="form-control" name="payment_qris_image" accept="image/*">
+                        <small class="text-muted d-block mt-1">Ditampilkan di tab "QRIS Statis" pada halaman registrasi &amp; verifikasi pembayaran, lengkap dengan tombol unduh untuk pelanggan.</small>
+
+                        @if (!empty($content->payment_qris_image_path))
+                            <div class="mt-2 d-flex align-items-center gap-3">
+                                <img src="{{ asset($content->payment_qris_image_path) }}" alt="Gambar QRIS saat ini" style="width: 140px; height: 140px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 8px;">
+                                <label class="d-flex align-items-center gap-2 mb-0">
+                                    <input type="checkbox" name="remove_payment_qris_image" value="1">
+                                    <span class="text-danger">Hapus gambar QRIS ini</span>
+                                </label>
+                            </div>
+                        @endif
                     </div>
 
                     <div class="d-flex justify-content-end gap-2 mt-4">

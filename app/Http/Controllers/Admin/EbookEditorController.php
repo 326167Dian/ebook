@@ -159,9 +159,24 @@ class EbookEditorController extends Controller
             'payment_bank_name' => ['required', 'string', 'max:80'],
             'payment_bank_account_number' => ['required', 'string', 'max:50'],
             'payment_bank_account_holder' => ['required', 'string', 'max:120'],
+            'payment_qris_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'remove_payment_qris_image' => ['nullable', 'boolean'],
         ]);
 
         $content = EbookContent::query()->firstOrCreate([], EbookContent::defaultData());
+
+        unset($data['payment_qris_image'], $data['remove_payment_qris_image']);
+
+        if ($request->hasFile('payment_qris_image')) {
+            $qrisFile = $request->file('payment_qris_image');
+            $fileName = 'qris-statis-' . now()->format('YmdHis') . '-' . Str::random(6) . '.' . $qrisFile->getClientOriginalExtension();
+            Storage::disk('public')->putFileAs('payment', $qrisFile, $fileName);
+
+            $data['payment_qris_image_path'] = 'storage-public/payment/' . $fileName;
+        } elseif ($request->boolean('remove_payment_qris_image')) {
+            $data['payment_qris_image_path'] = null;
+        }
+
         $content->update($data);
 
         return redirect()->route('admin.payment.edit')->with('status', 'Pengaturan pembayaran berhasil diperbarui.');

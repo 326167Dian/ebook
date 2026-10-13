@@ -31,6 +31,7 @@ class EbookContent extends Model
         'payment_bank_name',
         'payment_bank_account_number',
         'payment_bank_account_holder',
+        'payment_qris_image_path',
     ];
 
     protected function casts(): array
