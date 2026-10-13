@@ -109,11 +109,13 @@
                 @endif
             @endif
 
+            @if (false)
+            {{-- Tab switcher disembunyikan sementara: Midtrans juga dihide agar domain yang sedang ditinjau GDC hanya menampilkan QRIS Statis, menghindari kesalahpahaman bisnis. Kode disimpan untuk diaktifkan lagi nanti. --}}
             <div class="d-flex mb-3" style="gap: 8px;">
-                {{-- GDC tab disabled while focusing on Midtrans. Form markup below is kept intact for easy re-enable. --}}
                 <button type="button" id="pay-tab-btn-midtrans" class="pay-tab-btn flex-fill active" onclick="switchPayTab('midtrans')">Bayar Otomatis QRIS</button>
                 <button type="button" id="pay-tab-btn-manual" class="pay-tab-btn flex-fill" onclick="switchPayTab('manual')">QRIS Statis</button>
             </div>
+            @endif
 
             @if (false)
             <div id="pay-tab-qris" style="display: none;">
@@ -141,6 +143,7 @@
             </div>
             @endif
 
+            @if (false)
             <div id="pay-tab-midtrans">
                 <div class="status-note mb-3">
                     Bayar otomatis sebesar <span id="price-display-midtrans">Rp. {{ number_format($content->payment_price_original, 0, ',', '.') }}</span> via QRIS Midtrans
@@ -164,8 +167,9 @@
                     <button type="submit" class="btn btn-ebook btn-block mt-3">Lanjut Bayar dengan Midtrans</button>
                 </form>
             </div>
+            @endif
 
-            <div id="pay-tab-manual" style="display: none;">
+            <div id="pay-tab-manual">
                 @if (false)
                 {{-- Keterangan transfer bank disembunyikan, fokus ke QRIS statis saja (kode disimpan untuk diaktifkan lagi nanti). --}}
                 <div class="status-note mb-3">
@@ -226,8 +230,15 @@
     <script>
         function switchPayTab(tab) {
             ['midtrans', 'manual'].forEach(function (name) {
-                document.getElementById('pay-tab-' + name).style.display = tab === name ? '' : 'none';
-                document.getElementById('pay-tab-btn-' + name).classList.toggle('active', tab === name);
+                var panel = document.getElementById('pay-tab-' + name);
+                var btn = document.getElementById('pay-tab-btn-' + name);
+
+                if (panel) {
+                    panel.style.display = tab === name ? '' : 'none';
+                }
+                if (btn) {
+                    btn.classList.toggle('active', tab === name);
+                }
             });
         }
 
