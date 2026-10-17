@@ -604,6 +604,61 @@
             font-family: var(--ebook-body-font);
         }
 
+        .narasi-list {
+            list-style: none;
+            margin: 4px 0 14px;
+            padding: 0;
+        }
+
+        .narasi-list li {
+            position: relative;
+            padding: 8px 0 8px 32px;
+            color: #35516d;
+            font-weight: 600;
+            line-height: 1.5;
+            border-bottom: 1px dashed rgba(var(--ebook-primary-rgb), 0.14);
+        }
+
+        .narasi-list li:last-child {
+            border-bottom: 0;
+        }
+
+        .narasi-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            top: 8px;
+            width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 800;
+            color: #fff;
+            background: linear-gradient(145deg, var(--ebook-primary), var(--ebook-secondary));
+        }
+
+        .narasi-closing {
+            margin: 0 0 14px;
+            color: var(--ebook-primary);
+            font-weight: 700;
+            line-height: 1.6;
+        }
+
+        .narasi-cta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .narasi-btn {
+            flex: 1 1 180px;
+            border-radius: 999px;
+            font-weight: 700;
+        }
+
         @keyframes riseIn {
             from {
                 opacity: 0;
@@ -683,6 +738,37 @@
                 </div>
             </div>
         </div>
+
+        @if (empty($isMember))
+            <div class="section mt-4">
+                <div class="author-card">
+                    <div class="author-card-body">
+                        <div class="author-eyebrow">Mengapa E-Book Ini</div>
+                        <h3 class="author-title">Banyak apotek ramai pembeli, tapi kasnya tetap seret.</h3>
+                        <div class="rich-content mt-2">
+                            <p>Stok menumpuk di rak, belanja barang masih menebak-nebak, harga ikut perang dengan apotek sebelah, dan pemiliknya tidak bisa lepas dari apotek barang sehari pun.</p>
+                            <p>Masalahnya bukan di obat, tapi di sistem. Ilmu manajemen apotek memang tidak diajarkan di bangku kuliah.</p>
+                            <p>E-Book <strong>Bisnis Apotek Itu Asik</strong> merangkum lebih dari 20 tahun pengalaman nyata mengelola apotek, untuk apoteker maupun non-apoteker:</p>
+                        </div>
+                        <ul class="narasi-list">
+                            <li>Membuka apotek dengan modal dan perizinan yang lebih efisien</li>
+                            <li>Pengadaan barang berbasis data, fokus pada barang yang laku</li>
+                            <li>Puluhan cara menjemput pelanggan, tidak hanya menunggu di balik etalase</li>
+                            <li>Membangun pelanggan setia tanpa ikut perang harga</li>
+                            <li>Membaca laporan keuangan agar omzet benar-benar menjadi kas</li>
+                            <li>Membangun SOP dan tim, sehingga apotek tetap berjalan saat Anda tidak di tempat</li>
+                        </ul>
+                        <p class="narasi-closing">Bab pertama bisa dibaca gratis. Mulai bangun apotek sebagai aset keluarga yang tumbuh jangka panjang.</p>
+                        <div class="narasi-cta">
+                            <a href="#daftar-isi" class="btn btn-primary narasi-btn">Baca Bab 1 Gratis</a>
+                            @if (\Illuminate\Support\Facades\Route::has('member.register'))
+                                <a href="{{ route('member.register') }}" class="btn btn-outline-primary narasi-btn">Dapatkan Akses Lengkap</a>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
 
         <div class="section mt-4" id="daftar-isi">
             <div class="section-title">DAFTAR ISI</div>
