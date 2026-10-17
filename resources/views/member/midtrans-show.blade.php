@@ -58,6 +58,7 @@
             border: 0;
         }
     </style>
+    @include('partials.meta-pixel')
 </head>
 
 <body>
@@ -134,6 +135,13 @@
                     .then(function (response) { return response.json(); })
                     .then(function (data) {
                         if (data.status === 'paid') {
+                            if (window.fbq) {
+                                fbq('track', 'Purchase', {
+                                    value: {{ (int) $payment->amount }},
+                                    currency: 'IDR',
+                                    content_name: 'E-Book Bisnis Apotek Itu Asik'
+                                }, { eventID: @json('purchase-' . $payment->order_id) });
+                            }
                             setBadge('alert-success', 'Pembayaran berhasil! Mengalihkan...');
                             setTimeout(function () { window.location.href = data.redirect; }, 1200);
                             return;

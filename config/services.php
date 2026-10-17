@@ -35,6 +35,10 @@ return [
         ],
     ],
 
+    'meta_pixel' => [
+        'id' => env('META_PIXEL_ID', '1616618746601143'),
+    ],
+
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),

@@ -68,6 +68,16 @@
             color: #fff;
         }
     </style>
+    @include('partials.meta-pixel')
+    <script>
+        if (window.fbq) {
+            fbq('track', 'InitiateCheckout', {
+                value: {{ (int) ($content->payment_price_original ?? 0) }},
+                currency: 'IDR',
+                content_name: 'E-Book Bisnis Apotek Itu Asik'
+            });
+        }
+    </script>
 </head>
 
 <body>

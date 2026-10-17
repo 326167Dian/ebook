@@ -509,6 +509,16 @@
             }
         }
     </style>
+    @include('partials.meta-pixel')
+    <script>
+        if (window.fbq) {
+            fbq('track', 'ViewContent', {
+                content_name: @json((string) ($point['title'] ?? '')),
+                content_category: @json((string) ($chapter['title'] ?? '')),
+                content_type: 'product'
+            });
+        }
+    </script>
 </head>
 
 <body>

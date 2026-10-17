@@ -88,6 +88,7 @@
             display: inline-block;
         }
     </style>
+    @include('partials.meta-pixel')
 </head>
 
 <body>
