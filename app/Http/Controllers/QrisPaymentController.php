@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\EbookContent;
 use App\Models\Member;
+use App\Models\Reseller;
 use App\Models\QrisPayment;
 use App\Services\GdcPayService;
 use Endroid\QrCode\Builder\Builder;
+use App\Rules\ValidReferralCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -24,16 +26,12 @@ class QrisPaymentController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:150', 'unique:members,email'],
-            'referral_code' => [
-                'required',
-                'integer',
-                Rule::exists('reseller', 'id_reseller')->where(fn ($query) => $query->where('is_active', true)),
-            ],
+            'referral_code' => ['required', 'string', 'max:20', new ValidReferralCode()],
         ], [
             'referral_code.required' => 'Kode referral wajib diisi.',
-            'referral_code.integer' => 'Kode referral tidak valid, silakan masukkan kode yang benar.',
-            'referral_code.exists' => 'Kode referral tidak ditemukan, silakan masukkan kode yang benar.',
         ]);
+
+        $data['referral_code'] = Reseller::idFromReferralCode($data['referral_code']);
 
         $amount = EbookContent::query()->firstOrCreate([], EbookContent::defaultData())->payment_price_final;
 
@@ -65,16 +63,12 @@ class QrisPaymentController extends Controller
         }
 
         $data = $request->validate([
-            'referral_code' => [
-                'required',
-                'integer',
-                Rule::exists('reseller', 'id_reseller')->where(fn ($query) => $query->where('is_active', true)),
-            ],
+            'referral_code' => ['required', 'string', 'max:20', new ValidReferralCode()],
         ], [
             'referral_code.required' => 'Kode referral wajib diisi.',
-            'referral_code.integer' => 'Kode referral tidak valid, silakan masukkan kode yang benar.',
-            'referral_code.exists' => 'Kode referral tidak ditemukan, silakan masukkan kode yang benar.',
         ]);
+
+        $data['referral_code'] = Reseller::idFromReferralCode($data['referral_code']);
 
         $amount = EbookContent::query()->firstOrCreate([], EbookContent::defaultData())->payment_price_final;
 

@@ -6,6 +6,7 @@ use App\Models\EbookContent;
 use App\Models\Member;
 use App\Models\Reseller;
 use App\Services\MetaConversionsApi;
+use App\Rules\ValidReferralCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
@@ -137,16 +138,12 @@ class MemberAuthController extends Controller
 
         $data = $request->validate([
             'payment_proof' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
-            'referral_code' => [
-                'required',
-                'integer',
-                Rule::exists('reseller', 'id_reseller')->where(fn ($query) => $query->where('is_active', true)),
-            ],
+            'referral_code' => ['required', 'string', 'max:20', new ValidReferralCode()],
         ], [
             'referral_code.required' => 'Kode referral wajib diisi.',
-            'referral_code.integer' => 'Kode referral tidak valid, silakan masukkan kode yang benar.',
-            'referral_code.exists' => 'Kode referral tidak ditemukan, silakan masukkan kode yang benar.',
         ]);
+
+        $data['referral_code'] = Reseller::idFromReferralCode($data['referral_code']);
 
         $proofFile = $data['payment_proof'];
         $fileName = 'proof-' . now()->format('YmdHis') . '-' . Str::random(8) . '.' . $proofFile->getClientOriginalExtension();
@@ -249,16 +246,12 @@ class MemberAuthController extends Controller
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:150', 'unique:members,email'],
             'payment_proof' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
-            'referral_code' => [
-                'required',
-                'integer',
-                Rule::exists('reseller', 'id_reseller')->where(fn ($query) => $query->where('is_active', true)),
-            ],
+            'referral_code' => ['required', 'string', 'max:20', new ValidReferralCode()],
         ], [
             'referral_code.required' => 'Kode referral wajib diisi.',
-            'referral_code.integer' => 'Kode referral tidak valid, silakan masukkan kode yang benar.',
-            'referral_code.exists' => 'Kode referral tidak ditemukan, silakan masukkan kode yang benar.',
         ]);
+
+        $data['referral_code'] = Reseller::idFromReferralCode($data['referral_code']);
 
         $proofFile = $request->file('payment_proof');
 
