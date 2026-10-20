@@ -14,6 +14,9 @@
         'https://connect.facebook.net/en_US/fbevents.js');
         fbq('init', @json((string) $metaPixelId));
         fbq('track', 'PageView');
+        @if (is_array($metaPixelEvent = session('meta_pixel_event')))
+        fbq('track', @json($metaPixelEvent['name']), @json($metaPixelEvent['params'] ?? (object) []), { eventID: @json($metaPixelEvent['event_id'] ?? null) });
+        @endif
     </script>
     <noscript><img height="1" width="1" style="display:none"
         src="https://www.facebook.com/tr?id={{ $metaPixelId }}&ev=PageView&noscript=1" /></noscript>

@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'member.access' => EnsureMemberAccess::class,
             'reseller.access' => EnsureResellerAccess::class,
         ]);
+        // Cookie _fbp/_fbc dibuat oleh Meta Pixel (JavaScript), bukan Laravel,
+        // jadi jangan didekripsi supaya bisa dibaca untuk Conversions API.
+        $middleware->encryptCookies(except: ['_fbp', '_fbc']);
         $middleware->validateCsrfTokens(except: [
             'webhooks/gdcpay/*',
             'webhooks/midtrans/*',

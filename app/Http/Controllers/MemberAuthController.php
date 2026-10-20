@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\EbookContent;
 use App\Models\Member;
 use App\Models\Reseller;
+use App\Services\MetaConversionsApi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
@@ -157,12 +158,14 @@ class MemberAuthController extends Controller
             'paid_at' => null,
             'payment_rejected_at' => null,
             'id_reseller' => $data['referral_code'],
-        ])->save();
+            'meta_purchase_sent_at' => null,
+        ] + MetaConversionsApi::trackingFromRequest($request))->save();
 
         $request->session()->forget('referral_id_reseller');
 
         return redirect()
             ->route('member.payment')
+            ->with('meta_pixel_event', $this->manualUploadPixelEvent($member))
             ->with('status', 'Bukti pembayaran berhasil dikirim. Tunggu verifikasi admin untuk akses penuh e-book.');
     }
 
@@ -262,7 +265,7 @@ class MemberAuthController extends Controller
         $fileName = 'proof-' . now()->format('YmdHis') . '-' . Str::random(8) . '.' . $proofFile->getClientOriginalExtension();
         Storage::disk('public')->putFileAs('uploads/payment-proofs', $proofFile, $fileName);
 
-        Member::query()->create([
+        $member = Member::query()->create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make(Str::random(40)),
@@ -270,11 +273,14 @@ class MemberAuthController extends Controller
             'is_active' => false,
             'paid_at' => null,
             'id_reseller' => $data['referral_code'],
-        ]);
+        ] + MetaConversionsApi::trackingFromRequest($request));
 
         $request->session()->forget('referral_id_reseller');
 
-        return redirect()->route('member.login')->with('status', 'Registrasi berhasil. Akun Anda akan aktif setelah bukti transfer diverifikasi admin.');
+        return redirect()
+            ->route('member.login')
+            ->with('meta_pixel_event', $this->manualUploadPixelEvent($member))
+            ->with('status', 'Registrasi berhasil. Akun Anda akan aktif setelah bukti transfer diverifikasi admin.');
     }
 
     public function logout(Request $request)
@@ -301,6 +307,25 @@ class MemberAuthController extends Controller
         return $socialiteClass::driver('google')
             ->redirectUrl(route('member.google.callback'))
             ->scopes(['openid', 'profile', 'email']);
+    }
+
+    /**
+     * Event Pixel (browser) yang ditembakkan sekali di halaman berikutnya setelah
+     * konsumen upload bukti transfer QRIS statis. Purchase-nya sendiri baru dikirim
+     * lewat Conversions API saat admin meng-approve.
+     */
+    private function manualUploadPixelEvent(Member $member): array
+    {
+        return [
+            'name' => 'AddPaymentInfo',
+            'params' => [
+                'value' => (int) (EbookContent::query()->value('payment_price_final') ?? 0),
+                'currency' => 'IDR',
+                'content_name' => MetaConversionsApi::CONTENT_NAME,
+                'payment_method' => MetaConversionsApi::PAYMENT_METHOD_MANUAL,
+            ],
+            'event_id' => 'upload-proof-' . $member->id . '-' . now()->timestamp,
+        ];
     }
 
     private function resolveSessionMember(Request $request): ?Member

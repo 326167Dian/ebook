@@ -37,6 +37,11 @@ return [
 
     'meta_pixel' => [
         'id' => env('META_PIXEL_ID', '1616618746601143'),
+        // Conversions API: Events Manager > Pixel > Settings > Conversions API > Generate access token
+        'capi_token' => env('META_CAPI_TOKEN'),
+        // Isi hanya saat uji coba (Events Manager > Test Events), kosongkan di produksi.
+        'test_event_code' => env('META_TEST_EVENT_CODE'),
+        'graph_version' => env('META_GRAPH_VERSION', 'v25.0'),
     ],
 
     'google' => [
