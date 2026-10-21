@@ -166,6 +166,13 @@ class MemberAuthController extends Controller
             ->with('status', 'Bukti pembayaran berhasil dikirim. Tunggu verifikasi admin untuk akses penuh e-book.');
     }
 
+    public function checkReferral(Request $request)
+    {
+        return response()->json([
+            'valid' => Reseller::idFromReferralCode($request->query('code')) !== null,
+        ]);
+    }
+
     public function showRegister(Request $request)
     {
         return view('member.register', [

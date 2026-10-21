@@ -37,6 +37,11 @@ Route::middleware('guest')->group(function () {
     Route::post('/member/register/midtrans', [MidtransPaymentController::class, 'createForRegistration'])->name('member.register.midtrans.create');
 });
 
+// Cek kode referral/promo secara langsung dari form (AJAX). Dibatasi 30x/menit per IP.
+Route::get('/referral/check', [MemberAuthController::class, 'checkReferral'])
+    ->middleware('throttle:30,1')
+    ->name('referral.check');
+
 Route::post('/member/logout', [MemberAuthController::class, 'logout'])->name('member.logout');
 Route::get('/member/payment', [MemberAuthController::class, 'showPayment'])->name('member.payment');
 Route::post('/member/payment', [MemberAuthController::class, 'submitPayment'])->name('member.payment.submit');

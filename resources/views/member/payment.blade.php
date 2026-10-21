@@ -260,6 +260,10 @@
                 return 'Rp. ' + amount.toString().replace(/\B(?=(\d{3})+(?!\d)$)/g, '.');
             }
 
+            var referralCheckUrl = @json(route('referral.check'));
+            var referralCache = {};
+
+            // Harga diskon hanya ditampilkan setelah kode dicek ke server dan valid.
             function wireReferralPrice(inputId, displayId) {
                 var input = document.getElementById(inputId);
                 var display = document.getElementById(displayId);
@@ -268,18 +272,86 @@
                     return;
                 }
 
-                function updatePrice() {
-                    if (input.value.trim().length > 0) {
+                var note = document.createElement('small');
+                note.className = 'd-block mt-1';
+                var wrapper = input.closest('.input-wrapper') || input;
+                wrapper.parentNode.insertBefore(note, wrapper.nextSibling);
+
+                var timer = null;
+                var state = 'empty';
+
+                function showOriginal() {
+                    display.textContent = formatRupiah(originalPrice);
+                }
+
+                function render(code, valid) {
+                    if (input.value.trim().toUpperCase() !== code) {
+                        return;
+                    }
+                    if (valid) {
+                        state = 'valid';
                         display.innerHTML = '<del>' + formatRupiah(originalPrice) + '</del> <strong>' + formatRupiah(finalPrice) + '</strong>';
+                        note.className = 'd-block mt-1 text-success';
+                        note.textContent = '\u2713 Kode valid, harga promo berlaku.';
                     } else {
-                        display.textContent = formatRupiah(originalPrice);
+                        state = 'invalid';
+                        showOriginal();
+                        note.className = 'd-block mt-1 text-danger';
+                        note.textContent = 'Kode tidak ditemukan. Periksa kembali kode referral/promo Anda.';
                     }
                 }
 
-                input.addEventListener('input', updatePrice);
-                updatePrice();
+                function check() {
+                    var code = input.value.trim().toUpperCase();
+
+                    if (code.length === 0) {
+                        state = 'empty';
+                        showOriginal();
+                        note.textContent = '';
+                        return;
+                    }
+
+                    if (Object.prototype.hasOwnProperty.call(referralCache, code)) {
+                        render(code, referralCache[code]);
+                        return;
+                    }
+
+                    state = 'checking';
+                    showOriginal();
+                    note.className = 'd-block mt-1 text-muted';
+                    note.textContent = 'Memeriksa kode...';
+
+                    fetch(referralCheckUrl + '?code=' + encodeURIComponent(code), { headers: { 'Accept': 'application/json' } })
+                        .then(function (res) { return res.ok ? res.json() : { valid: false }; })
+                        .then(function (data) {
+                            referralCache[code] = !!data.valid;
+                            render(code, !!data.valid);
+                        })
+                        .catch(function () {
+                            // Gagal cek (jaringan): jangan blokir, server tetap memvalidasi saat submit.
+                            state = 'unknown';
+                            note.textContent = '';
+                        });
+                }
+
+                input.addEventListener('input', function () {
+                    clearTimeout(timer);
+                    timer = setTimeout(check, 500);
+                });
+
+                if (input.form) {
+                    input.form.addEventListener('submit', function (e) {
+                        if (state === 'invalid') {
+                            e.preventDefault();
+                            input.focus();
+                        }
+                    });
+                }
+
+                check();
             }
 
+            wireReferralPrice('referral-qris', 'price-display-qris');
             wireReferralPrice('referral-midtrans', 'price-display-midtrans');
             wireReferralPrice('referral-manual', 'price-display-manual');
 
