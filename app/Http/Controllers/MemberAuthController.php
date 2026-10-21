@@ -138,12 +138,10 @@ class MemberAuthController extends Controller
 
         $data = $request->validate([
             'payment_proof' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
-            'referral_code' => ['required', 'string', 'max:20', new ValidReferralCode()],
-        ], [
-            'referral_code.required' => 'Kode referral wajib diisi.',
+            'referral_code' => ['nullable', 'string', 'max:20', new ValidReferralCode()],
         ]);
 
-        $data['referral_code'] = Reseller::idFromReferralCode($data['referral_code']);
+        $data['referral_code'] = Reseller::idFromReferralCode($data['referral_code'] ?? null);
 
         $proofFile = $data['payment_proof'];
         $fileName = 'proof-' . now()->format('YmdHis') . '-' . Str::random(8) . '.' . $proofFile->getClientOriginalExtension();
@@ -253,12 +251,10 @@ class MemberAuthController extends Controller
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:150', 'unique:members,email'],
             'payment_proof' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
-            'referral_code' => ['required', 'string', 'max:20', new ValidReferralCode()],
-        ], [
-            'referral_code.required' => 'Kode referral wajib diisi.',
+            'referral_code' => ['nullable', 'string', 'max:20', new ValidReferralCode()],
         ]);
 
-        $data['referral_code'] = Reseller::idFromReferralCode($data['referral_code']);
+        $data['referral_code'] = Reseller::idFromReferralCode($data['referral_code'] ?? null);
 
         $proofFile = $request->file('payment_proof');
 
@@ -319,7 +315,7 @@ class MemberAuthController extends Controller
         return [
             'name' => 'AddPaymentInfo',
             'params' => [
-                'value' => (int) (EbookContent::query()->value('payment_price_final') ?? 0),
+                'value' => EbookContent::priceFor($member->id_reseller),
                 'currency' => 'IDR',
                 'content_name' => MetaConversionsApi::CONTENT_NAME,
                 'payment_method' => MetaConversionsApi::PAYMENT_METHOD_MANUAL,

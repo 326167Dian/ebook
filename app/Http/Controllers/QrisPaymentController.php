@@ -26,14 +26,12 @@ class QrisPaymentController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:150', 'unique:members,email'],
-            'referral_code' => ['required', 'string', 'max:20', new ValidReferralCode()],
-        ], [
-            'referral_code.required' => 'Kode referral wajib diisi.',
+            'referral_code' => ['nullable', 'string', 'max:20', new ValidReferralCode()],
         ]);
 
-        $data['referral_code'] = Reseller::idFromReferralCode($data['referral_code']);
+        $data['referral_code'] = Reseller::idFromReferralCode($data['referral_code'] ?? null);
 
-        $amount = EbookContent::query()->firstOrCreate([], EbookContent::defaultData())->payment_price_final;
+        $amount = EbookContent::priceFor($data['referral_code']);
 
         $qrisPayment = $this->createQrisPayment('register', $amount, [
             'pending_name' => $data['name'],
@@ -63,14 +61,12 @@ class QrisPaymentController extends Controller
         }
 
         $data = $request->validate([
-            'referral_code' => ['required', 'string', 'max:20', new ValidReferralCode()],
-        ], [
-            'referral_code.required' => 'Kode referral wajib diisi.',
+            'referral_code' => ['nullable', 'string', 'max:20', new ValidReferralCode()],
         ]);
 
-        $data['referral_code'] = Reseller::idFromReferralCode($data['referral_code']);
+        $data['referral_code'] = Reseller::idFromReferralCode($data['referral_code'] ?? null);
 
-        $amount = EbookContent::query()->firstOrCreate([], EbookContent::defaultData())->payment_price_final;
+        $amount = EbookContent::priceFor($data['referral_code']);
 
         $qrisPayment = $this->createQrisPayment('payment', $amount, [
             'member_id' => $member->id,

@@ -43,6 +43,17 @@ class EbookContent extends Model
         ];
     }
 
+    /**
+     * Harga yang harus dibayar: harga promo bila ada kode referral/promo yang valid,
+     * harga normal bila tanpa kode.
+     */
+    public static function priceFor(?int $idReseller): int
+    {
+        $content = static::query()->firstOrCreate([], static::defaultData());
+
+        return (int) ($idReseller ? $content->payment_price_final : $content->payment_price_original);
+    }
+
     public static function defaultData(): array
     {
         return [

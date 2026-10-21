@@ -596,7 +596,7 @@
 
                 <div class="mb-4">
                     <h3 class="mb-2">Moderasi Member</h3>
-                    <p class="text-secondary mb-2">Approve pendaftar setelah bukti transfer Rp. {{ number_format($content->payment_price_final, 0, ',', '.') }} sesuai. Pendaftar yang belum upload bukti transfer tidak ditampilkan di sini.</p>
+                    <p class="text-secondary mb-2">Approve pendaftar setelah nominal di bukti transfer sesuai tagihan masing-masing (Rp. {{ number_format($content->payment_price_final, 0, ',', '.') }} dengan kode referral/promo, Rp. {{ number_format($content->payment_price_original, 0, ',', '.') }} tanpa kode). Pendaftar yang belum upload bukti transfer tidak ditampilkan di sini.</p>
 
                     @if (($pendingMembers ?? collect())->isEmpty())
                         <div class="alert alert-light border">Tidak ada pendaftar yang menunggu verifikasi.</div>
@@ -606,6 +606,11 @@
                                 <div><strong>{{ $member->name }}</strong></div>
                                 <div class="small text-muted">{{ $member->email }}</div>
                                 <div class="small text-muted">Daftar: {{ optional($member->created_at)->format('d M Y H:i') }}</div>
+                                <div class="small">
+                                    Tagihan:
+                                    <strong>Rp. {{ number_format($member->id_reseller ? $content->payment_price_final : $content->payment_price_original, 0, ',', '.') }}</strong>
+                                    <span class="text-muted">({{ $member->id_reseller ? 'kode referral #' . $member->id_reseller : 'tanpa kode, harga normal' }})</span>
+                                </div>
 
                                 @if (!empty($member->payment_proof_path))
                                     <a href="{{ asset($member->payment_proof_path) }}" target="_blank" rel="noopener">

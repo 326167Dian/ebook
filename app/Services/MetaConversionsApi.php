@@ -52,7 +52,7 @@ class MetaConversionsApi
             return false;
         }
 
-        $value = (int) (EbookContent::query()->value('payment_price_final') ?? 0);
+        $value = EbookContent::priceFor($member->id_reseller);
 
         $userData = array_filter([
             'em' => [$this->hash(strtolower(trim((string) $member->email)))],

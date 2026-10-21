@@ -132,7 +132,7 @@
 
                     <div class="form-group boxed mt-2">
                         <div class="input-wrapper">
-                            <input type="text" autocapitalize="characters" maxlength="20" class="form-control" id="referral-qris" name="referral_code" placeholder="Kode Referral" value="{{ old('referral_code', $referralCode ?? '') }}" required>
+                            <input type="text" autocapitalize="characters" maxlength="20" class="form-control" id="referral-qris" name="referral_code" placeholder="Kode Referral / Promo (opsional)" value="{{ old('referral_code', $referralCode ?? '') }}">
                         </div>
                         @if (! empty($referralCode) && ! old('referral_code'))
                             <small class="text-success d-block mt-1">Kode referral otomatis terisi dari link yang Anda buka. Anda tetap bisa mengubahnya bila perlu.</small>
@@ -172,7 +172,7 @@
 
                     <div class="form-group boxed mt-2">
                         <div class="input-wrapper">
-                            <input type="text" autocapitalize="characters" maxlength="20" class="form-control" id="referral-midtrans" name="referral_code" placeholder="Kode Referral" value="{{ old('referral_code', $referralCode ?? '') }}" required>
+                            <input type="text" autocapitalize="characters" maxlength="20" class="form-control" id="referral-midtrans" name="referral_code" placeholder="Kode Referral / Promo (opsional)" value="{{ old('referral_code', $referralCode ?? '') }}">
                         </div>
                         @if (! empty($referralCode) && ! old('referral_code'))
                             <small class="text-success d-block mt-1">Kode referral otomatis terisi dari link yang Anda buka. Anda tetap bisa mengubahnya bila perlu.</small>
@@ -235,7 +235,7 @@
 
                     <div class="form-group boxed mt-2">
                         <div class="input-wrapper">
-                            <input type="text" autocapitalize="characters" maxlength="20" class="form-control" id="referral-manual" name="referral_code" placeholder="Kode Referral" value="{{ old('referral_code', $referralCode ?? '') }}" required>
+                            <input type="text" autocapitalize="characters" maxlength="20" class="form-control" id="referral-manual" name="referral_code" placeholder="Kode Referral / Promo (opsional)" value="{{ old('referral_code', $referralCode ?? '') }}">
                         </div>
                         @if (! empty($referralCode) && ! old('referral_code'))
                             <small class="text-success d-block mt-1">Kode referral otomatis terisi dari link yang Anda buka. Anda tetap bisa mengubahnya bila perlu.</small>
@@ -314,7 +314,7 @@
                         state = 'invalid';
                         showOriginal();
                         note.className = 'd-block mt-1 text-danger';
-                        note.textContent = 'Kode tidak ditemukan. Periksa kembali kode referral/promo Anda.';
+                        note.textContent = 'Kode tidak ditemukan. Periksa kembali, atau kosongkan kolom ini untuk membayar harga normal.';
                     }
                 }
 
