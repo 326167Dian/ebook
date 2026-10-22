@@ -8,6 +8,7 @@ use App\Models\PharmacyLogo;
 use App\Models\PointVisit;
 use App\Models\Reseller;
 use App\Models\SiteVisit;
+use App\Models\Testimonial;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
@@ -47,6 +48,15 @@ class EbookController extends Controller
             $pharmacyLogos = PharmacyLogo::query()->orderBy('sort_order')->orderBy('id')->get();
         }
 
+        $testimonials = collect();
+        if (Schema::hasTable('testimonials')) {
+            $testimonials = Testimonial::query()
+                ->where('is_visible', true)
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->get();
+        }
+
         $totalVisits = $this->trackVisit($request);
 
         return view('ebook.index', [
@@ -55,6 +65,7 @@ class EbookController extends Controller
             'isMember' => $member !== null,
             'memberName' => $member?->name,
             'pharmacyLogos' => $pharmacyLogos,
+            'testimonials' => $testimonials,
             'totalVisits' => $totalVisits,
         ]);
     }

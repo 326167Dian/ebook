@@ -425,6 +425,135 @@
             line-height: 1.25;
         }
 
+        .testi-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 22px;
+            border: 1px solid rgba(var(--ebook-primary-rgb), 0.14);
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(244, 250, 255, 0.95));
+            box-shadow: 0 18px 34px rgba(var(--ebook-primary-rgb), 0.12);
+        }
+
+        .testi-card::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto auto 0;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, var(--ebook-primary), var(--ebook-secondary), var(--ebook-accent));
+        }
+
+        .testi-card-body {
+            position: relative;
+            z-index: 1;
+            padding: 24px 20px 22px;
+        }
+
+        .testi-sub {
+            margin: 0 0 16px;
+            color: #5b7083;
+            font-size: 14px;
+        }
+
+        .testi-list {
+            display: flex;
+            gap: 14px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            padding: 2px 2px 10px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .testi-item {
+            flex: 0 0 86%;
+            scroll-snap-align: center;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 18px 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(var(--ebook-primary-rgb), 0.12);
+            background: #fff;
+            box-shadow: 0 8px 18px rgba(var(--ebook-primary-rgb), 0.08);
+        }
+
+        .testi-stars {
+            font-size: 16px;
+            letter-spacing: 2px;
+            color: #d4dad8;
+            line-height: 1;
+        }
+
+        .testi-stars .on {
+            color: #f5a623;
+        }
+
+        .testi-quote {
+            margin: 0;
+            flex: 1;
+            font-size: 14.5px;
+            line-height: 1.65;
+            color: var(--ebook-text);
+            white-space: pre-line;
+            text-align: justify;
+        }
+
+        .testi-person {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .testi-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .testi-initials {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(var(--ebook-primary-rgb), 0.12);
+            color: var(--ebook-primary);
+            font-weight: 800;
+            font-size: 15px;
+            font-family: var(--ebook-title-font);
+        }
+
+        .testi-name {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            color: #173453;
+        }
+
+        .testi-role {
+            display: block;
+            font-size: 12px;
+            color: #5b7083;
+        }
+
+        .testi-cta {
+            margin-top: 14px;
+            text-align: center;
+        }
+
+        @media (min-width: 768px) {
+            .testi-list {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+                overflow: visible;
+            }
+
+            .testi-item {
+                flex: none;
+            }
+        }
+
         @media (max-width: 576px) {
             .member-session-name {
                 max-width: 95px;
@@ -766,6 +895,50 @@
                                 <a href="{{ route('member.register') }}" class="btn btn-outline-primary narasi-btn">Dapatkan Akses Lengkap</a>
                             @endif
                         </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        @if (($testimonials ?? collect())->isNotEmpty())
+            <div class="section mt-4" id="testimoni">
+                <div class="testi-card">
+                    <div class="testi-card-body">
+                        <div class="author-eyebrow">Testimoni</div>
+                        <h3 class="author-title">Kata Mereka yang Sudah Membaca</h3>
+                        <p class="testi-sub">Pengalaman nyata dari pembaca E-Book Bisnis Apotek Itu Asik.</p>
+
+                        <div class="testi-list">
+                            @foreach ($testimonials as $testi)
+                                <figure class="testi-item">
+                                    <div class="testi-stars" aria-label="Rating {{ $testi->rating }} dari 5">
+                                        @for ($i = 1; $i <= 5; $i++)
+                                            <span class="{{ $i <= $testi->rating ? 'on' : '' }}" aria-hidden="true">&#9733;</span>
+                                        @endfor
+                                    </div>
+                                    <blockquote class="testi-quote">&ldquo;{{ $testi->content }}&rdquo;</blockquote>
+                                    <figcaption class="testi-person">
+                                        @if (!empty($testi->photo_path))
+                                            <img src="{{ asset($testi->photo_path) }}" alt="{{ $testi->name }}" class="testi-avatar" width="44" height="44" loading="lazy" decoding="async">
+                                        @else
+                                            <span class="testi-avatar testi-initials" aria-hidden="true">{{ $testi->initials }}</span>
+                                        @endif
+                                        <span>
+                                            <span class="testi-name">{{ $testi->name }}</span>
+                                            @if (!empty($testi->role))
+                                                <span class="testi-role">{{ $testi->role }}</span>
+                                            @endif
+                                        </span>
+                                    </figcaption>
+                                </figure>
+                            @endforeach
+                        </div>
+
+                        @if (empty($isMember) && \Illuminate\Support\Facades\Route::has('member.register'))
+                            <div class="testi-cta">
+                                <a href="{{ route('member.register') }}" class="btn btn-primary narasi-btn">Dapatkan Akses Lengkap</a>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

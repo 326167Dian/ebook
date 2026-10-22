@@ -556,6 +556,10 @@
                         <ion-icon name="card-outline"></ion-icon>
                         <span>Pengaturan Pembayaran</span>
                     </a>
+                    <a href="{{ route('admin.testimonials.index') }}" class="admin-side-menu-link">
+                        <ion-icon name="chatbubbles-outline"></ion-icon>
+                        <span>Testimoni</span>
+                    </a>
                 </nav>
             </aside>
             <div class="admin-side-menu-backdrop" id="adminSideMenuBackdrop"></div>
