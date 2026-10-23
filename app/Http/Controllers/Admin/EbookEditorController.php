@@ -18,41 +18,9 @@ class EbookEditorController extends Controller
     {
         $content = EbookContent::query()->firstOrCreate([], EbookContent::defaultData());
         $content->chapters = EbookContent::normalizeChapters($content->chapters ?? []);
-        $pendingMembers = collect();
-
-        if (Schema::hasTable('members')) {
-            $pendingMembers = Member::query()
-                ->where('is_active', false)
-                ->whereNotNull('payment_proof_path')
-                ->where('payment_proof_path', '!=', '')
-                ->latest()
-                ->get();
-        }
-
-        // Calon pembeli: sudah isi data (langkah 1) tapi belum upload bukti bayar.
-        $leadMembers = collect();
-
-        if (Schema::hasTable('members')) {
-            $leadMembers = Member::query()
-                ->where('is_active', false)
-                ->where(fn ($q) => $q->whereNull('payment_proof_path')->orWhere('payment_proof_path', ''))
-                ->where('created_at', '>=', now()->subDays(30))
-                ->latest()
-                ->limit(50)
-                ->get();
-        }
-
-        $pendingResellers = collect();
-
-        if (Schema::hasTable('reseller')) {
-            $pendingResellers = Reseller::query()->where('is_active', false)->latest()->get();
-        }
 
         return view('admin.editor', [
             'content' => $content,
-            'pendingMembers' => $pendingMembers,
-            'leadMembers' => $leadMembers,
-            'pendingResellers' => $pendingResellers,
         ]);
     }
 

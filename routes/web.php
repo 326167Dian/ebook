@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminAuthController;
+use App\Http\Controllers\Admin\ApprovalController;
 use App\Http\Controllers\Admin\CkeditorUploadController;
 use App\Http\Controllers\Admin\EbookEditorController;
 use App\Http\Controllers\Admin\FooterEditorController;
@@ -106,6 +107,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', fn () => redirect()->route('admin.editor'))->name('dashboard');
     Route::get('/admin', [EbookEditorController::class, 'edit'])->name('admin.editor');
+    Route::get('/approval', [ApprovalController::class, 'index'])->name('admin.approval');
     Route::post('/admin', [EbookEditorController::class, 'update'])->name('admin.editor.update');
     Route::get('/admin/statistik-pengunjung', [EbookEditorController::class, 'stats'])->name('admin.stats');
     Route::get('/admin/daftar-member', [EbookEditorController::class, 'members'])->name('admin.members.index');

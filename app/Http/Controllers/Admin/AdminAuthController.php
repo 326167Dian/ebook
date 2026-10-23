@@ -36,7 +36,7 @@ class AdminAuthController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->route('admin.editor');
+        return redirect()->intended(route('admin.editor'));
     }
 
     public function logout(Request $request)
