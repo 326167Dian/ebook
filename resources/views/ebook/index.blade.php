@@ -40,6 +40,9 @@
     <meta name="theme-color" content="{{ $themePrimary }}" />
     <title>E-Book Bisnis Apotek</title>
 
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="preconnect" href="https://connect.facebook.net" crossorigin>
+
     <link rel="stylesheet" href="{{ asset('Mobilekit/HTML/assets/css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/ebook-typography.css') }}">
 
@@ -804,9 +807,10 @@
 </head>
 
 <body>
-    <div id="loader">
-        <div class="spinner-border text-primary" role="status"></div>
-    </div>
+    {{-- Loader bawaan Mobilekit disembunyikan: sebelumnya layar tertutup spinner
+         sampai semua script selesai dimuat + jeda 1,45 detik. Elemen tetap ada
+         karena base.js mengaksesnya. --}}
+    <div id="loader" style="display:none"></div>
 
     <div class="appHeader text-light">
         <div class="left">
@@ -858,7 +862,7 @@
                     @endphp
 
                     @if (!blank($coverImage))
-                        <img src="{{ asset($coverImage) }}" alt="Cover E-Book">
+                        <img src="{{ asset($coverImage) }}" alt="Cover E-Book" fetchpriority="high" decoding="async">
                     @else
                         <div class="text-center px-3">
                             <ion-icon name="book-outline" style="font-size:58px; color:var(--ebook-accent);"></ion-icon>
@@ -1013,7 +1017,7 @@
                     <div class="author-grid">
                         <div class="author-photo-frame">
                             @if (!empty($content->author_photo))
-                                <img src="{{ asset($content->author_photo) }}" alt="Foto Penulis">
+                                <img src="{{ asset($content->author_photo) }}" alt="Foto Penulis" loading="lazy" decoding="async">
                             @else
                                 <div class="author-photo-placeholder">{{ $authorInitials }}</div>
                             @endif
@@ -1066,9 +1070,9 @@
         </div>
     </div>
 
-    <script src="{{ asset('Mobilekit/HTML/assets/js/lib/bootstrap.min.js') }}"></script>
+    <script src="{{ asset('Mobilekit/HTML/assets/js/lib/bootstrap.min.js') }}" defer></script>
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
-    <script src="{{ asset('Mobilekit/HTML/assets/js/base.js') }}"></script>
+    <script src="{{ asset('Mobilekit/HTML/assets/js/base.js') }}" defer></script>
 </body>
 
 </html>

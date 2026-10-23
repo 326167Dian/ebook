@@ -9,6 +9,12 @@ class PharmacyLogo extends Model
 {
     use HasFactory;
 
+    protected static function booted(): void
+    {
+        static::saved(fn () => EbookContent::flushPublicCache());
+        static::deleted(fn () => EbookContent::flushPublicCache());
+    }
+
     protected $fillable = [
         'name',
         'logo_path',

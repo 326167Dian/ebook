@@ -75,6 +75,9 @@ return [
 
     'links' => [
         public_path('storage') => storage_path('app/public'),
+        // Agar gambar /storage-public/... dilayani langsung oleh web server
+        // (tanpa menjalankan Laravel untuk setiap gambar). Jalankan: php artisan storage:link
+        public_path('storage-public') => storage_path('app/public'),
     ],
 
 ];

@@ -10,6 +10,7 @@ use App\Models\Reseller;
 use App\Models\SiteVisit;
 use App\Models\Testimonial;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 
@@ -19,64 +20,58 @@ class EbookController extends Controller
     {
         $this->captureReferral($request, $id_reseller);
 
-        $covers = [];
-        $coverDirectory = public_path('coverebook');
+        // Data halaman depan sama untuk semua pengunjung, jadi disimpan di cache.
+        // Cache otomatis dihapus saat admin mengubah konten/logo/testimoni
+        // (lihat EbookContent::LANDING_CACHE_KEY dan event booted() di model).
+        $landing = Cache::remember(EbookContent::LANDING_CACHE_KEY, now()->addHours(6), function () {
+            $covers = [];
+            $coverDirectory = public_path('coverebook');
 
-        if (File::exists($coverDirectory)) {
-            foreach (File::files($coverDirectory) as $file) {
-                if (in_array(strtolower($file->getExtension()), ['jpg', 'jpeg', 'png', 'webp'], true)) {
-                    $covers[] = 'coverebook/' . $file->getFilename();
+            if (File::exists($coverDirectory)) {
+                foreach (File::files($coverDirectory) as $file) {
+                    if (in_array(strtolower($file->getExtension()), ['jpg', 'jpeg', 'png', 'webp'], true)) {
+                        $covers[] = 'coverebook/' . $file->getFilename();
+                    }
                 }
             }
-        }
 
-        if (empty($covers) && File::exists(public_path('coverebook.png'))) {
-            $covers[] = 'coverebook.png';
-        }
+            if (empty($covers) && File::exists(public_path('coverebook.png'))) {
+                $covers[] = 'coverebook.png';
+            }
 
-        $content = EbookContent::query()->first();
+            $content = EbookContent::query()->first() ?? new EbookContent(EbookContent::defaultData());
+            $content->chapters = EbookContent::normalizeChapters($content->chapters ?? []);
 
-        if (!$content) {
-            $content = new EbookContent(EbookContent::defaultData());
-        }
+            $pharmacyLogos = Schema::hasTable('pharmacy_logos')
+                ? PharmacyLogo::query()->orderBy('sort_order')->orderBy('id')->get()
+                : collect();
 
-        $content->chapters = EbookContent::normalizeChapters($content->chapters ?? []);
+            $testimonials = Schema::hasTable('testimonials')
+                ? Testimonial::query()->where('is_visible', true)->orderBy('sort_order')->orderBy('id')->get()
+                : collect();
+
+            return compact('covers', 'content', 'pharmacyLogos', 'testimonials');
+        });
+
         $member = $this->resolveActiveMember($request);
-
-        $pharmacyLogos = collect();
-        if (Schema::hasTable('pharmacy_logos')) {
-            $pharmacyLogos = PharmacyLogo::query()->orderBy('sort_order')->orderBy('id')->get();
-        }
-
-        $testimonials = collect();
-        if (Schema::hasTable('testimonials')) {
-            $testimonials = Testimonial::query()
-                ->where('is_visible', true)
-                ->orderBy('sort_order')
-                ->orderBy('id')
-                ->get();
-        }
-
         $totalVisits = $this->trackVisit($request);
 
         return view('ebook.index', [
-            'covers' => $covers,
-            'content' => $content,
+            'covers' => $landing['covers'],
+            'content' => $landing['content'],
             'isMember' => $member !== null,
             'memberName' => $member?->name,
-            'pharmacyLogos' => $pharmacyLogos,
-            'testimonials' => $testimonials,
+            'pharmacyLogos' => $landing['pharmacyLogos'],
+            'testimonials' => $landing['testimonials'],
             'totalVisits' => $totalVisits,
         ]);
     }
 
     public function point(Request $request, string $slug)
     {
-        $content = EbookContent::query()->first();
-
-        if (!$content) {
-            $content = new EbookContent(EbookContent::defaultData());
-        }
+        $content = Cache::remember(EbookContent::CONTENT_CACHE_KEY, now()->addHours(6), function () {
+            return EbookContent::query()->first() ?? new EbookContent(EbookContent::defaultData());
+        });
 
         $chapters = EbookContent::normalizeChapters($content->chapters ?? []);
         $flatPoints = [];
@@ -173,14 +168,20 @@ class EbookController extends Controller
 
     private function trackVisit(Request $request): int
     {
-        $siteVisit = SiteVisit::query()->firstOrCreate([], ['total_visits' => 0]);
-
-        if (! $request->session()->get('site_visit_counted')) {
-            $siteVisit->increment('total_visits');
-            $request->session()->put('site_visit_counted', true);
+        // Pengunjung yang sudah dihitung di sesi ini cukup membaca angka dari cache,
+        // tanpa query ke database.
+        if ($request->session()->get('site_visit_counted')) {
+            return (int) Cache::remember('ebook.total_visits', now()->addMinutes(10), function () {
+                return (int) SiteVisit::query()->value('total_visits');
+            });
         }
 
-        return $siteVisit->total_visits;
+        $siteVisit = SiteVisit::query()->firstOrCreate([], ['total_visits' => 0]);
+        $siteVisit->increment('total_visits');
+        $request->session()->put('site_visit_counted', true);
+        Cache::put('ebook.total_visits', (int) $siteVisit->total_visits, now()->addMinutes(10));
+
+        return (int) $siteVisit->total_visits;
     }
 
     private function trackPointVisit(Request $request, string $slug, string $title): void

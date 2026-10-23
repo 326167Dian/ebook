@@ -4,11 +4,27 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class EbookContent extends Model
 {
     use HasFactory;
+
+    public const LANDING_CACHE_KEY = 'ebook.landing';
+    public const CONTENT_CACHE_KEY = 'ebook.content';
+
+    public static function flushPublicCache(): void
+    {
+        Cache::forget(self::LANDING_CACHE_KEY);
+        Cache::forget(self::CONTENT_CACHE_KEY);
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(fn () => static::flushPublicCache());
+        static::deleted(fn () => static::flushPublicCache());
+    }
 
     protected $fillable = [
         'badge',
