@@ -29,6 +29,19 @@ class EbookEditorController extends Controller
                 ->get();
         }
 
+        // Calon pembeli: sudah isi data (langkah 1) tapi belum upload bukti bayar.
+        $leadMembers = collect();
+
+        if (Schema::hasTable('members')) {
+            $leadMembers = Member::query()
+                ->where('is_active', false)
+                ->where(fn ($q) => $q->whereNull('payment_proof_path')->orWhere('payment_proof_path', ''))
+                ->where('created_at', '>=', now()->subDays(30))
+                ->latest()
+                ->limit(50)
+                ->get();
+        }
+
         $pendingResellers = collect();
 
         if (Schema::hasTable('reseller')) {
@@ -38,6 +51,7 @@ class EbookEditorController extends Controller
         return view('admin.editor', [
             'content' => $content,
             'pendingMembers' => $pendingMembers,
+            'leadMembers' => $leadMembers,
             'pendingResellers' => $pendingResellers,
         ]);
     }

@@ -69,22 +69,39 @@
         }
     </style>
     @include('partials.meta-pixel')
-    <script>
-        if (window.fbq) {
-            fbq('track', 'InitiateCheckout', {
-                value: {{ (int) ($content->payment_price_original ?? 0) }},
-                currency: 'IDR',
-                content_name: 'E-Book Bisnis Apotek Itu Asik'
-            });
+    {{-- InitiateCheckout tidak lagi dikirim saat halaman dibuka, tapi setelah
+         pengunjung mengisi data dan menekan "Lanjut ke Pembayaran". --}}
+    <style>
+        .step-label {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            background: rgba(255, 255, 255, .2);
+            border-radius: 999px;
+            padding: 3px 10px;
+            margin-bottom: 8px;
         }
-    </script>
+
+        .benefit-list {
+            margin: 8px 0 0;
+            padding-left: 18px;
+            font-size: 13px;
+        }
+
+        body {
+            padding-bottom: 80px;
+        }
+    </style>
 </head>
 
 <body>
     <div class="register-card">
         <div class="register-head">
-            <h2 class="mb-1">Registrasi Member</h2>
-            <p class="mb-0 opacity-75">Daftar untuk akses penuh seluruh isi e-book.</p>
+            <span class="step-label">Langkah 1 dari 2 &middot; Data Diri</span>
+            <h2 class="mb-1">Dapatkan Akses Penuh E-Book</h2>
+            <p class="mb-0 opacity-75">Isi data di bawah, lalu lanjut ke pembayaran QRIS.</p>
         </div>
 
         <div class="card-body p-3">
@@ -195,42 +212,38 @@
                 </div>
                 @endif
 
-                @if (!empty($content->payment_qris_image_path))
-                    <div class="price-note mb-3">
-                        Bayar sebesar <span id="price-display-manual">Rp. {{ number_format($content->payment_price_original, 0, ',', '.') }}</span><br>
-                        Akun akan aktif maksimal 1 x 24 jam setelah upload bukti transfer.
-                    </div>
+                <div class="price-note mb-3">
+                    Harga E-Book: <strong id="price-display-manual">Rp. {{ number_format($content->payment_price_original, 0, ',', '.') }}</strong>
+                    <ul class="benefit-list">
+                        <li>Akses penuh ke seluruh bab e-book</li>
+                        <li>Bayar dengan QRIS (m-Banking, GoPay, OVO, DANA, ShopeePay, dll.)</li>
+                    </ul>
+                </div>
 
-                    <div class="text-center mb-3">
-                        <img src="{{ asset($content->payment_qris_image_path) }}" alt="QRIS Statis" style="max-width: 260px; width: 100%; height: auto; border-radius: 8px; border: 1px solid #e0e0e0;">
-                        <a href="{{ asset($content->payment_qris_image_path) }}" download class="btn btn-outline-primary btn-sm d-block mt-2 mx-auto" style="max-width: 200px;">Unduh Gambar QRIS</a>
-                    </div>
-                @endif
-
-                <form method="POST" action="{{ route('member.register.submit') }}" enctype="multipart/form-data">
+                <form method="POST" action="{{ route('member.register.submit') }}">
                     @csrf
                     <input type="hidden" name="_form" value="manual">
 
                     <div class="form-group boxed">
                         <div class="input-wrapper">
-                            <input type="text" class="form-control" name="name" placeholder="Nama"
-                                value="{{ old('name') }}" required>
+                            <input type="text" class="form-control" name="name" placeholder="Nama lengkap"
+                                value="{{ old('name') }}" autocomplete="name" required>
                         </div>
                     </div>
 
                     <div class="form-group boxed mt-2">
                         <div class="input-wrapper">
-                            <input type="email" class="form-control" name="email" placeholder="Alamat email"
-                                value="{{ old('email') }}" required>
+                            <input type="email" class="form-control" name="email" placeholder="Alamat email (untuk login dengan Google)"
+                                value="{{ old('email') }}" autocomplete="email" required>
                         </div>
                     </div>
 
                     <div class="form-group boxed mt-2">
-                        <label class="form-label">Upload Bukti Transfer</label>
                         <div class="input-wrapper">
-                            <input type="file" class="form-control" name="payment_proof" accept="image/*" required>
+                            <input type="tel" inputmode="tel" class="form-control" name="phone" placeholder="Nomor WhatsApp, contoh 081234567890"
+                                value="{{ old('phone') }}" autocomplete="tel" required>
                         </div>
-                        <small class="text-muted d-block mt-1">Format gambar: JPG, JPEG, PNG, WEBP. Maksimal 5MB.</small>
+                        <small class="text-muted d-block mt-1">Dipakai untuk konfirmasi pembayaran bila ada kendala.</small>
                     </div>
 
                     <div class="form-group boxed mt-2">
@@ -242,7 +255,7 @@
                         @endif
                     </div>
 
-                    <button type="submit" class="btn btn-ebook btn-block mt-3">Daftar & Akses E-Book</button>
+                    <button type="submit" class="btn btn-ebook btn-block mt-3">Lanjut ke Pembayaran</button>
                 </form>
             </div>
 
@@ -251,6 +264,8 @@
             {{-- <a href="{{ route('admin.login') }}" class="btn btn-link btn-block mt-2">Masuk sebagai Admin</a> --}}
         </div>
     </div>
+
+    @include('partials.wa-help', ['link' => $waHelpLink ?? null, 'label' => 'Tanya dulu via WhatsApp'])
 
     <script src="{{ asset('Mobilekit/HTML/assets/js/lib/bootstrap.min.js') }}"></script>
     <script src="{{ asset('Mobilekit/HTML/assets/js/base.js') }}"></script>

@@ -68,8 +68,18 @@ Route::post('/v1.0/access-token/b2b', [GdcPayWebhookController::class, 'issueAcc
 // Payment Notification URL). Must be reachable from the internet.
 Route::post('/webhooks/midtrans/notification', [MidtransWebhookController::class, 'notification'])->name('midtrans.webhook.notification');
 
+// Gambar tidak butuh sesi/cookie/CSRF. Tanpa middleware ini, setiap gambar
+// tidak lagi menulis sesi ke database, jadi jauh lebih ringan.
 Route::get('/storage-public/{path}', [StoragePublicFileController::class, 'show'])
     ->where('path', '.*')
+    ->withoutMiddleware([
+        \Illuminate\Cookie\Middleware\EncryptCookies::class,
+        \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+        \Illuminate\Session\Middleware\StartSession::class,
+        \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+        \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
+        \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
+    ])
     ->name('storage.public.show');
 
 Route::prefix('reseller')->name('reseller.')->group(function () {

@@ -56,7 +56,19 @@ class EbookController extends Controller
         $member = $this->resolveActiveMember($request);
         $totalVisits = $this->trackVisit($request);
 
+        // Harga ditampilkan di halaman depan. Pengunjung dari link reseller/promo
+        // langsung melihat harga promonya.
+        $priceOriginal = (int) $landing['content']->payment_price_original;
+        $referralId = (int) $request->session()->get('referral_id_reseller', 0);
+        $priceToPay = $referralId > 0 ? EbookContent::priceFor($referralId) : $priceOriginal;
+
         return view('ebook.index', [
+            'priceOriginal' => $priceOriginal,
+            'priceToPay' => $priceToPay,
+            'hasPromoCode' => (int) $landing['content']->payment_price_final < $priceOriginal,
+            'waHelpLink' => Member::businessWhatsappLink(
+                "Halo, saya tertarik dengan E-Book Bisnis Apotek Itu Asik.\nBoleh saya bertanya dulu sebelum membeli?"
+            ),
             'covers' => $landing['covers'],
             'content' => $landing['content'],
             'isMember' => $member !== null,

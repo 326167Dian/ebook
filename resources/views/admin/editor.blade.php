@@ -609,6 +609,9 @@
                             <div class="member-approval-card">
                                 <div><strong>{{ $member->name }}</strong></div>
                                 <div class="small text-muted">{{ $member->email }}</div>
+                                @if (!empty($member->phone))
+                                    <div class="small"><a href="{{ \App\Models\Member::whatsappLink($member->phone) }}" target="_blank" rel="noopener">WA: {{ $member->phone }}</a></div>
+                                @endif
                                 <div class="small text-muted">Daftar: {{ optional($member->created_at)->format('d M Y H:i') }}</div>
                                 <div class="small">
                                     Tagihan:
@@ -630,6 +633,43 @@
                                     <form method="POST" action="{{ route('admin.members.reject', $member) }}">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-outline-danger">Tolak</button>
+                                    </form>
+                                </div>
+                            </div>
+                        @endforeach
+                    @endif
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="mb-2">Calon Pembeli (belum upload bukti)</h3>
+                    <p class="text-secondary mb-2">Sudah mengisi nama, email, dan WhatsApp, tapi belum mengirim bukti bayar (30 hari terakhir). Hubungi lewat WhatsApp untuk follow up. Jika pembeli sudah bayar dan mengirim bukti lewat WhatsApp, klik Approve.</p>
+
+                    @if (($leadMembers ?? collect())->isEmpty())
+                        <div class="alert alert-light border">Belum ada calon pembeli.</div>
+                    @else
+                        @foreach ($leadMembers as $lead)
+                            @php
+                                $leadPrice = \App\Models\EbookContent::priceFor($lead->id_reseller);
+                                $leadWa = \App\Models\Member::whatsappLink(
+                                    $lead->phone,
+                                    "Halo {$lead->name}, terima kasih sudah mendaftar E-Book Bisnis Apotek Itu Asik.\n"
+                                    . 'Apakah ada kendala saat pembayaran Rp' . number_format($leadPrice, 0, ',', '.') . '? Kami siap membantu.'
+                                );
+                            @endphp
+                            <div class="member-approval-card">
+                                <div><strong>{{ $lead->name }}</strong></div>
+                                <div class="small text-muted">{{ $lead->email }}</div>
+                                <div class="small text-muted">Daftar: {{ optional($lead->created_at)->format('d M Y H:i') }} &middot; Tagihan Rp. {{ number_format($leadPrice, 0, ',', '.') }}</div>
+
+                                <div class="member-approval-actions">
+                                    @if ($leadWa)
+                                        <a href="{{ $leadWa }}" target="_blank" rel="noopener" class="btn btn-sm btn-success">Follow up WA ({{ $lead->phone }})</a>
+                                    @else
+                                        <span class="small text-muted">Tidak ada nomor WA (daftar lewat Google)</span>
+                                    @endif
+                                    <form method="POST" action="{{ route('admin.members.approve', $lead) }}" onsubmit="return confirm('Pembayaran calon pembeli ini sudah diterima?');">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">Approve (sudah bayar via WA)</button>
                                     </form>
                                 </div>
                             </div>

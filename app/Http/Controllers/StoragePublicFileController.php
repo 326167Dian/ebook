@@ -24,7 +24,8 @@ class StoragePublicFileController extends Controller
 
         return response()->file($absolutePath, [
             'Content-Type' => $mimeType,
-            'Cache-Control' => 'public, max-age=86400',
+            // Nama file selalu unik (ada timestamp), jadi aman disimpan browser 1 tahun.
+            'Cache-Control' => 'public, max-age=31536000, immutable',
         ]);
     }
 }

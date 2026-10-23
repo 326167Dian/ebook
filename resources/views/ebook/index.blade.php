@@ -779,6 +779,45 @@
             line-height: 1.6;
         }
 
+        .price-box {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin: 0 0 14px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: rgba(var(--ebook-primary-rgb), 0.06);
+            border: 1px dashed rgba(var(--ebook-primary-rgb), 0.3);
+        }
+
+        .price-label {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #5b7083;
+        }
+
+        .price-value {
+            font-family: var(--ebook-title-font);
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--ebook-primary);
+            line-height: 1.2;
+        }
+
+        .price-value del {
+            font-size: 15px;
+            font-weight: 600;
+            color: #8a9bab;
+            margin-right: 6px;
+        }
+
+        .price-sub {
+            font-size: 12.5px;
+            color: #5b7083;
+        }
+
         .narasi-cta {
             display: flex;
             flex-wrap: wrap;
@@ -893,12 +932,34 @@
                             <li>Membangun SOP dan tim, sehingga apotek tetap berjalan saat Anda tidak di tempat</li>
                         </ul>
                         <p class="narasi-closing">Bab pertama bisa dibaca gratis. Mulai bangun apotek sebagai aset keluarga yang tumbuh jangka panjang.</p>
+                        @if (!empty($priceToPay))
+                            <div class="price-box">
+                                <span class="price-label">Harga akses penuh</span>
+                                <span class="price-value">
+                                    @if ($priceToPay < ($priceOriginal ?? 0))
+                                        <del>Rp{{ number_format($priceOriginal, 0, ',', '.') }}</del>
+                                    @endif
+                                    Rp{{ number_format($priceToPay, 0, ',', '.') }}
+                                </span>
+                                <span class="price-sub">
+                                    Bayar dengan QRIS (m-Banking / e-wallet).
+                                    @if ($priceToPay >= ($priceOriginal ?? 0) && !empty($hasPromoCode))
+                                        Punya kode promo? Masukkan saat daftar.
+                                    @endif
+                                </span>
+                            </div>
+                        @endif
                         <div class="narasi-cta">
                             <a href="#daftar-isi" class="btn btn-primary narasi-btn">Baca Bab 1 Gratis</a>
                             @if (\Illuminate\Support\Facades\Route::has('member.register'))
                                 <a href="{{ route('member.register') }}" class="btn btn-outline-primary narasi-btn">Dapatkan Akses Lengkap</a>
                             @endif
                         </div>
+                        @if (!empty($waHelpLink))
+                            <p class="text-center mt-2 mb-0" style="font-size: 13px;">
+                                Masih ragu? <a href="{{ $waHelpLink }}" target="_blank" rel="noopener" style="color:#1a9e4b; font-weight:700;">Tanya dulu via WhatsApp</a>
+                            </p>
+                        @endif
                     </div>
                 </div>
             </div>

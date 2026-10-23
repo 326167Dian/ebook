@@ -44,6 +44,11 @@ return [
         'graph_version' => env('META_GRAPH_VERSION', 'v25.0'),
     ],
 
+    // Nomor WhatsApp bisnis untuk tombol bantuan pembeli (format 62xxxx, tanpa + dan spasi).
+    'whatsapp' => [
+        'number' => env('WHATSAPP_NUMBER', '6281374760411'),
+    ],
+
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),

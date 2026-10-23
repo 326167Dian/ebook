@@ -22,7 +22,9 @@ class MemberModerationController extends Controller
         // setelah admin approve, jadi Purchase dikirim ke Meta di titik ini.
         $status = 'Member berhasil di-approve dan bisa mengakses e-book.';
 
-        if (! $wasActive && filled($member->payment_proof_path) && ! $member->meta_purchase_sent_at) {
+        // Termasuk calon pembeli yang bayar/kirim bukti lewat WhatsApp (tanpa upload):
+        // approve admin = pembayaran sudah dicek, jadi tetap dihitung sebagai Purchase.
+        if (! $wasActive && ! $member->meta_purchase_sent_at) {
             if ($metaCapi->sendManualPurchase($member)) {
                 $status .= ' Konversi Purchase terkirim ke Meta.';
             } elseif ($metaCapi->isConfigured()) {

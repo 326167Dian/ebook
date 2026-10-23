@@ -18,6 +18,7 @@ class Member extends Model implements CanResetPasswordContract
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'google_id',
         'avatar',
         'password',
@@ -52,6 +53,48 @@ class Member extends Model implements CanResetPasswordContract
             'commission_paid_at' => 'datetime',
             'meta_purchase_sent_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Ubah nomor HP yang diketik (0812..., +62 812..., 812...) jadi format 62812...
+     */
+    public static function normalizePhone(?string $phone): ?string
+    {
+        $digits = preg_replace('/\D+/', '', (string) $phone);
+
+        if ($digits === '') {
+            return null;
+        }
+
+        if (str_starts_with($digits, '0')) {
+            $digits = '62' . substr($digits, 1);
+        } elseif (str_starts_with($digits, '8')) {
+            $digits = '62' . $digits;
+        }
+
+        return $digits;
+    }
+
+    /**
+     * Link wa.me ke nomor tertentu, dengan pesan yang sudah terisi.
+     */
+    public static function whatsappLink(?string $number, string $message = ''): ?string
+    {
+        $number = static::normalizePhone($number);
+
+        if (! $number) {
+            return null;
+        }
+
+        return 'https://wa.me/' . $number . ($message !== '' ? '?text=' . rawurlencode($message) : '');
+    }
+
+    /**
+     * Link WhatsApp bisnis (tombol bantuan untuk pembeli).
+     */
+    public static function businessWhatsappLink(string $message = ''): ?string
+    {
+        return static::whatsappLink(config('services.whatsapp.number'), $message);
     }
 
     public function sendPasswordResetNotification($token): void

@@ -10,6 +10,7 @@ use App\Rules\ValidReferralCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -117,10 +118,20 @@ class MemberAuthController extends Controller
             return redirect()->route('ebook.home');
         }
 
+        $content = EbookContent::query()->firstOrCreate([], EbookContent::defaultData());
+        $referralCode = $this->resolveReferralCode($request);
+        $price = EbookContent::priceFor($referralCode ?? $member->id_reseller);
+
+        $waMessage = "Halo, saya {$member->name} ({$member->email}).\n"
+            . 'Saya ingin membeli E-Book Bisnis Apotek Itu Asik seharga Rp' . number_format($price, 0, ',', '.') . ".\n"
+            . 'Mohon dibantu untuk pembayarannya / kirimkan QRIS-nya. Terima kasih.';
+
         return view('member.payment', [
             'member' => $member,
-            'content' => EbookContent::query()->firstOrCreate([], EbookContent::defaultData()),
-            'referralCode' => $this->resolveReferralCode($request),
+            'content' => $content,
+            'referralCode' => $referralCode,
+            'price' => $price,
+            'waHelpLink' => Member::businessWhatsappLink($waMessage),
         ]);
     }
 
@@ -179,6 +190,9 @@ class MemberAuthController extends Controller
         return view('member.register', [
             'content' => EbookContent::query()->firstOrCreate([], EbookContent::defaultData()),
             'referralCode' => $this->resolveReferralCode($request),
+            'waHelpLink' => Member::businessWhatsappLink(
+                "Halo, saya tertarik dengan E-Book Bisnis Apotek Itu Asik.\nBoleh saya bertanya dulu sebelum membeli?"
+            ),
         ]);
     }
 
@@ -248,38 +262,81 @@ class MemberAuthController extends Controller
         ])->withInput($request->only('email'));
     }
 
+    /**
+     * Langkah 1 registrasi: simpan nama, email, dan nomor WhatsApp dulu sebagai
+     * calon pembeli, lalu lanjut ke halaman pembayaran (langkah 2: QRIS + upload bukti).
+     * Calon pembeli yang tidak jadi bayar tetap tercatat dan bisa di-follow up admin.
+     */
     public function register(Request $request)
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
-            'email' => ['required', 'email', 'max:150', 'unique:members,email'],
-            'payment_proof' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'email' => ['required', 'email', 'max:150'],
+            'phone' => ['required', 'string', 'regex:/^[0-9+\-\s()]{9,20}$/'],
             'referral_code' => ['nullable', 'string', 'max:20', new ValidReferralCode()],
+        ], [
+            'phone.required' => 'Nomor WhatsApp wajib diisi.',
+            'phone.regex' => 'Nomor WhatsApp tidak valid. Contoh: 081234567890.',
         ]);
 
-        $data['referral_code'] = Reseller::idFromReferralCode($data['referral_code'] ?? null);
+        $idReseller = Reseller::idFromReferralCode($data['referral_code'] ?? null);
+        $phone = Member::normalizePhone($data['phone']);
+        $hasPhoneColumn = Schema::hasColumn('members', 'phone');
 
-        $proofFile = $request->file('payment_proof');
+        $member = Member::query()->where('email', $data['email'])->first();
 
-        $fileName = 'proof-' . now()->format('YmdHis') . '-' . Str::random(8) . '.' . $proofFile->getClientOriginalExtension();
-        Storage::disk('public')->putFileAs('uploads/payment-proofs', $proofFile, $fileName);
+        if ($member && $member->is_active) {
+            return back()
+                ->withInput()
+                ->withErrors(['email' => 'Email ini sudah terdaftar dan aktif. Silakan login dengan Google memakai email tersebut.']);
+        }
 
-        $member = Member::query()->create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make(Str::random(40)),
-            'payment_proof_path' => 'storage-public/uploads/payment-proofs/' . $fileName,
-            'is_active' => false,
-            'paid_at' => null,
-            'id_reseller' => $data['referral_code'],
-        ] + MetaConversionsApi::trackingFromRequest($request));
+        if ($member && filled($member->payment_proof_path) && ! $member->payment_rejected_at) {
+            return back()
+                ->withInput()
+                ->withErrors(['email' => 'Bukti pembayaran untuk email ini sudah kami terima dan sedang diverifikasi. Hubungi WhatsApp kami bila ada kendala.']);
+        }
 
-        $request->session()->forget('referral_id_reseller');
+        $tracking = MetaConversionsApi::trackingFromRequest($request);
+
+        if ($member) {
+            // Calon pembeli yang kembali lagi: lanjutkan datanya, jangan buat akun baru.
+            $member->forceFill(array_filter([
+                'phone' => $hasPhoneColumn ? $phone : null,
+                'id_reseller' => $idReseller ?? $member->id_reseller,
+            ], fn ($v) => $v !== null) + $tracking)->save();
+        } else {
+            $member = Member::query()->create(array_filter([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'phone' => $hasPhoneColumn ? $phone : null,
+                'password' => Hash::make(Str::random(40)),
+                'payment_proof_path' => '',
+                'is_active' => false,
+                'paid_at' => null,
+                'id_reseller' => $idReseller,
+            ], fn ($v) => $v !== null) + $tracking);
+        }
+
+        if ($idReseller) {
+            // Supaya kolom kode referral di halaman pembayaran langsung terisi.
+            $request->session()->put('referral_id_reseller', $idReseller);
+        }
+
+        $request->session()->put('member_id', $member->id);
+        $request->session()->regenerate();
 
         return redirect()
-            ->route('member.login')
-            ->with('meta_pixel_event', $this->manualUploadPixelEvent($member))
-            ->with('status', 'Registrasi berhasil. Akun Anda akan aktif setelah bukti transfer diverifikasi admin.');
+            ->route('member.payment')
+            ->with('meta_pixel_event', [
+                'name' => 'InitiateCheckout',
+                'params' => [
+                    'value' => EbookContent::priceFor($member->id_reseller),
+                    'currency' => 'IDR',
+                    'content_name' => MetaConversionsApi::CONTENT_NAME,
+                ],
+                'event_id' => 'checkout-member-' . $member->id . '-' . now()->timestamp,
+            ]);
     }
 
     public function logout(Request $request)
