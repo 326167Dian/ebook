@@ -44,14 +44,21 @@ class EbookContent extends Model
     }
 
     /**
-     * Harga yang harus dibayar: harga promo bila ada kode referral/promo yang valid,
-     * harga normal bila tanpa kode.
+     * Harga yang harus dibayar: harga khusus milik reseller/kode tsb bila diset
+     * (mis. kode event seperti "JUMAT"), harga promo standar bila ada kode referral
+     * tanpa harga khusus, atau harga normal bila tanpa kode sama sekali.
      */
     public static function priceFor(?int $idReseller): int
     {
         $content = static::query()->firstOrCreate([], static::defaultData());
 
-        return (int) ($idReseller ? $content->payment_price_final : $content->payment_price_original);
+        if (! $idReseller) {
+            return (int) $content->payment_price_original;
+        }
+
+        $customPrice = Reseller::query()->whereKey($idReseller)->value('custom_price_final');
+
+        return (int) ($customPrice ?? $content->payment_price_final);
     }
 
     public static function defaultData(): array

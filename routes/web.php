@@ -110,6 +110,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/admin/members/{member}/reject', [MemberModerationController::class, 'reject'])->name('admin.members.reject');
     Route::post('/admin/resellers/{reseller}/approve', [ResellerModerationController::class, 'approve'])->name('admin.resellers.approve');
     Route::post('/admin/resellers/{reseller}/reject', [ResellerModerationController::class, 'reject'])->name('admin.resellers.reject');
+    Route::post('/admin/resellers/{reseller}/pricing', [ResellerModerationController::class, 'updatePricing'])->name('admin.resellers.pricing');
     Route::get('/admin/footer', [FooterEditorController::class, 'edit'])->name('admin.footer.edit');
     Route::post('/admin/footer', [FooterEditorController::class, 'update'])->name('admin.footer.update');
     Route::post('/admin/pharmacy-logos', [PharmacyLogoController::class, 'store'])->name('admin.pharmacy-logos.store');

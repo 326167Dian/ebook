@@ -284,13 +284,13 @@
                     display.textContent = formatRupiah(originalPrice);
                 }
 
-                function render(code, valid) {
+                function render(code, valid, price) {
                     if (input.value.trim().toUpperCase() !== code) {
                         return;
                     }
                     if (valid) {
                         state = 'valid';
-                        display.innerHTML = '<del>' + formatRupiah(originalPrice) + '</del> <strong>' + formatRupiah(finalPrice) + '</strong>';
+                        display.innerHTML = '<del>' + formatRupiah(originalPrice) + '</del> <strong>' + formatRupiah(price || finalPrice) + '</strong>';
                         note.className = 'd-block mt-1 text-success';
                         note.textContent = '\u2713 Kode valid, harga promo berlaku.';
                     } else {
@@ -312,7 +312,7 @@
                     }
 
                     if (Object.prototype.hasOwnProperty.call(referralCache, code)) {
-                        render(code, referralCache[code]);
+                        render(code, referralCache[code].valid, referralCache[code].price);
                         return;
                     }
 
@@ -324,8 +324,8 @@
                     fetch(referralCheckUrl + '?code=' + encodeURIComponent(code), { headers: { 'Accept': 'application/json' } })
                         .then(function (res) { return res.ok ? res.json() : { valid: false }; })
                         .then(function (data) {
-                            referralCache[code] = !!data.valid;
-                            render(code, !!data.valid);
+                            referralCache[code] = { valid: !!data.valid, price: data.price || null };
+                            render(code, !!data.valid, data.price || null);
                         })
                         .catch(function () {
                             // Gagal cek (jaringan): jangan blokir, server tetap memvalidasi saat submit.

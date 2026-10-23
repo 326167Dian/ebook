@@ -50,6 +50,20 @@
                     <a href="{{ route('admin.editor') }}" class="btn btn-outline-secondary">Kembali ke Dashboard Admin</a>
                 </div>
 
+                @if (session('status'))
+                    <div class="alert alert-success">{{ session('status') }}</div>
+                @endif
+
+                @if ($errors->any())
+                    <div class="alert alert-danger">
+                        <ul class="mb-0 ps-3">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 @if (($approvedResellers ?? collect())->isEmpty())
                     <div class="alert alert-light border">Belum ada reseller aktif.</div>
                 @else
@@ -61,6 +75,7 @@
                                     <th>Nama</th>
                                     <th>Username</th>
                                     <th>Telp</th>
+                                    <th>Kode Promo &amp; Harga Khusus</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -72,6 +87,32 @@
                                         <td>{{ $reseller->username }}</td>
                                         <td>{{ $reseller->telp }}</td>
                                         <td>
+                                            <details>
+                                                <summary style="cursor: pointer;">
+                                                    @if ($reseller->promo_code)
+                                                        <span class="badge bg-primary">{{ $reseller->promo_code }}</span>
+                                                    @else
+                                                        <span class="text-muted">Belum ada kode promo</span>
+                                                    @endif
+                                                    @if (! is_null($reseller->custom_price_final))
+                                                        <span class="badge bg-success">Rp {{ number_format($reseller->custom_price_final, 0, ',', '.') }}</span>
+                                                    @endif
+                                                </summary>
+                                                <form method="POST" action="{{ route('admin.resellers.pricing', $reseller) }}" class="mt-2 d-flex flex-column gap-2" style="max-width: 260px;">
+                                                    @csrf
+                                                    <div>
+                                                        <label class="form-label mb-0 small">Kode Promo (opsional)</label>
+                                                        <input type="text" name="promo_code" class="form-control form-control-sm" maxlength="20" value="{{ old('promo_code', $reseller->promo_code) }}" placeholder="mis. JUMAT">
+                                                    </div>
+                                                    <div>
+                                                        <label class="form-label mb-0 small">Harga Khusus (opsional)</label>
+                                                        <input type="number" name="custom_price_final" min="0" class="form-control form-control-sm" value="{{ old('custom_price_final', $reseller->custom_price_final) }}" placeholder="kosongkan = harga promo standar">
+                                                    </div>
+                                                    <button type="submit" class="btn btn-sm btn-outline-primary">Simpan</button>
+                                                </form>
+                                            </details>
+                                        </td>
+                                        <td>
                                             <a href="{{ route('admin.resellers.members', $reseller) }}" class="btn btn-sm btn-primary">
                                                 Detail Member
                                             </a>
@@ -81,7 +122,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <small class="text-muted d-block mt-1">ID di atas adalah Kode Referral yang bisa dibagikan reseller ke calon member.</small>
+                    <small class="text-muted d-block mt-1">ID di atas adalah Kode Referral yang bisa dibagikan reseller ke calon member. Kode Promo adalah alternatif berupa huruf+angka (mis. "JUMAT"). Harga Khusus menimpa harga promo standar hanya untuk reseller/kode ini.</small>
 
                 @endif
 

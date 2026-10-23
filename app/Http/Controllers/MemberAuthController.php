@@ -166,8 +166,11 @@ class MemberAuthController extends Controller
 
     public function checkReferral(Request $request)
     {
+        $idReseller = Reseller::idFromReferralCode($request->query('code'));
+
         return response()->json([
-            'valid' => Reseller::idFromReferralCode($request->query('code')) !== null,
+            'valid' => $idReseller !== null,
+            'price' => $idReseller !== null ? EbookContent::priceFor($idReseller) : null,
         ]);
     }
 

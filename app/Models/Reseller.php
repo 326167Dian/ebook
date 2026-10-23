@@ -16,6 +16,7 @@ class Reseller extends Model
     protected $fillable = [
         'username',
         'promo_code',
+        'custom_price_final',
         'password',
         'nm_reseller',
         'telp',
@@ -68,6 +69,7 @@ class Reseller extends Model
         return [
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'custom_price_final' => 'integer',
         ];
     }
 }
