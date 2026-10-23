@@ -94,7 +94,8 @@ class Member extends Model implements CanResetPasswordContract
      */
     public static function businessWhatsappLink(string $message = ''): ?string
     {
-        return static::whatsappLink(config('services.whatsapp.number'), $message);
+        // Cadangan bila config lama masih ter-cache di hosting (bootstrap/cache/config.php).
+        return static::whatsappLink(config('services.whatsapp.number') ?: '6281374760411', $message);
     }
 
     public function sendPasswordResetNotification($token): void
