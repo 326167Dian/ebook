@@ -143,7 +143,11 @@
         <div class="payment-head">
             <span class="step-label">Langkah 2 dari 2 &middot; Pembayaran</span>
             <h2 class="mb-1">Selesaikan Pembayaran</h2>
-            <p class="mb-0 opacity-75">Bayar dengan QRIS, lalu upload bukti pembayarannya di halaman ini.</p>
+            @if ($dynamicAvailable)
+                <p class="mb-0 opacity-75">Scan QRIS untuk bayar otomatis -- akun langsung aktif begitu pembayaran terverifikasi.</p>
+            @else
+                <p class="mb-0 opacity-75">Bayar dengan QRIS, lalu upload bukti pembayarannya di halaman ini.</p>
+            @endif
         </div>
 
         <div class="card-body p-3">
