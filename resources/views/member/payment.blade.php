@@ -179,16 +179,14 @@
                 @endif
             @endif
 
-            @if (false)
-            {{-- Tab switcher disembunyikan sementara: Midtrans juga dihide agar domain yang sedang ditinjau GDC hanya menampilkan QRIS Statis, menghindari kesalahpahaman bisnis. Kode disimpan untuk diaktifkan lagi nanti. --}}
+            {{-- QRIS Otomatis (GDC Pay lewat hub mysifacenter.my.id) kembali aktif jadi tab default --
+                 Midtrans tetap disembunyikan (sudah digantikan GDC Pay). --}}
             <div class="d-flex mb-3" style="gap: 8px;">
-                <button type="button" id="pay-tab-btn-midtrans" class="pay-tab-btn flex-fill active" onclick="switchPayTab('midtrans')">Bayar Otomatis QRIS</button>
+                <button type="button" id="pay-tab-btn-qris" class="pay-tab-btn flex-fill active" onclick="switchPayTab('qris')">Bayar Otomatis QRIS</button>
                 <button type="button" id="pay-tab-btn-manual" class="pay-tab-btn flex-fill" onclick="switchPayTab('manual')">QRIS Statis</button>
             </div>
-            @endif
 
-            @if (false)
-            <div id="pay-tab-qris" style="display: none;">
+            <div id="pay-tab-qris">
                 <div class="status-note mb-3">
                     Bayar otomatis sebesar <span id="price-display-qris">Rp. {{ number_format($content->payment_price_original, 0, ',', '.') }}</span> via QRIS
                     (GoPay, OVO, DANA, ShopeePay, m-Banking, dll).<br>
@@ -211,7 +209,6 @@
                     <button type="submit" class="btn btn-ebook btn-block mt-3">Lanjut Bayar dengan QRIS</button>
                 </form>
             </div>
-            @endif
 
             @if (false)
             <div id="pay-tab-midtrans">
@@ -239,7 +236,7 @@
             </div>
             @endif
 
-            <div id="pay-tab-manual">
+            <div id="pay-tab-manual" style="display: none;">
                 @if (false)
                 {{-- Keterangan transfer bank disembunyikan, fokus ke QRIS statis saja (kode disimpan untuk diaktifkan lagi nanti). --}}
                 <div class="status-note mb-3">
@@ -372,7 +369,7 @@
         })();
 
         function switchPayTab(tab) {
-            ['midtrans', 'manual'].forEach(function (name) {
+            ['qris', 'manual'].forEach(function (name) {
                 var panel = document.getElementById('pay-tab-' + name);
                 var btn = document.getElementById('pay-tab-btn-' + name);
 
@@ -489,7 +486,7 @@
             wireReferralPrice('referral-manual', 'price-display-manual');
 
             var submittedForm = @json(old('_form'));
-            if (submittedForm === 'manual') {
+            if (submittedForm === 'manual' || submittedForm === 'qris') {
                 switchPayTab(submittedForm);
             }
         })();
