@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\ResellerModerationController;
 use App\Http\Controllers\Admin\TestimonialController;
 use App\Http\Controllers\EbookController;
 use App\Http\Controllers\GdcPayWebhookController;
+use App\Http\Controllers\HubQrisWebhookController;
 use App\Http\Controllers\MemberAuthController;
 use App\Http\Controllers\MidtransPaymentController;
 use App\Http\Controllers\MidtransWebhookController;
@@ -68,6 +69,10 @@ Route::post('/v1.0/access-token/b2b', [GdcPayWebhookController::class, 'issueAcc
 // Midtrans HTTP notification, registered in Midtrans dashboard (Settings > Configuration >
 // Payment Notification URL). Must be reachable from the internet.
 Route::post('/webhooks/midtrans/notification', [MidtransWebhookController::class, 'notification'])->name('midtrans.webhook.notification');
+
+// Notifikasi yang diteruskan hub QRIS GDC (mysifacenter.my.id) -- server-to-server,
+// dikecualikan dari CSRF (lihat bootstrap/app.php). Lihat HubQrisWebhookController.
+Route::post('/webhooks/hub-qris/notification', [HubQrisWebhookController::class, 'notification'])->name('hub-qris.webhook');
 
 // Gambar tidak butuh sesi/cookie/CSRF. Tanpa middleware ini, setiap gambar
 // tidak lagi menulis sesi ke database, jadi jauh lebih ringan.

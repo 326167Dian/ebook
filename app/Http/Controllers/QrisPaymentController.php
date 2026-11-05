@@ -6,7 +6,7 @@ use App\Models\EbookContent;
 use App\Models\Member;
 use App\Models\Reseller;
 use App\Models\QrisPayment;
-use App\Services\GdcPayService;
+use App\Services\HubQrisService;
 use Endroid\QrCode\Builder\Builder;
 use App\Rules\ValidReferralCode;
 use Illuminate\Http\Request;
@@ -17,7 +17,7 @@ use Throwable;
 
 class QrisPaymentController extends Controller
 {
-    public function __construct(private readonly GdcPayService $gdcPay)
+    public function __construct(private readonly HubQrisService $hubQris)
     {
     }
 
@@ -116,7 +116,7 @@ class QrisPaymentController extends Controller
         $this->refreshExpiry($qrisPayment);
 
         if ($qrisPayment->status === 'pending' && (! $qrisPayment->last_checked_at || $qrisPayment->last_checked_at->diffInSeconds(now()) >= 3)) {
-            $this->pollGdcStatus($qrisPayment);
+            $this->pollHubStatus($qrisPayment);
 
             if ($qrisPayment->status === 'paid') {
                 $request->session()->forget('referral_id_reseller');
@@ -132,19 +132,18 @@ class QrisPaymentController extends Controller
     private function createQrisPayment(string $flow, int $amount, array $attributes): ?QrisPayment
     {
         $referenceNo = (string) Str::uuid();
-        $externalId = (string) Str::uuid();
 
         $qrisPayment = QrisPayment::create(array_merge([
             'flow' => $flow,
             'reference_no' => $referenceNo,
-            'external_id' => $externalId,
+            'external_id' => $referenceNo,
             'amount' => $amount,
             'status' => 'pending',
-            'expires_at' => now()->addMinutes((int) config('gdcpay.qr_expiry_minutes')),
+            'expires_at' => now()->addMinutes((int) config('hubqris.qr_expiry_minutes')),
         ], $attributes));
 
         try {
-            $result = $this->gdcPay->generateQr($referenceNo, $externalId, $amount);
+            $result = $this->hubQris->generateQr($referenceNo, $amount);
         } catch (Throwable $exception) {
             report($exception);
             $qrisPayment->delete();
@@ -152,28 +151,29 @@ class QrisPaymentController extends Controller
             return null;
         }
 
-        if (empty($result['qrContent'])) {
+        if (empty($result['qr_content'])) {
             $qrisPayment->delete();
 
             return null;
         }
 
         $qrisPayment->forceFill([
-            'gdc_reference_no' => $result['referenceNo'] ?? null,
-            'qr_content' => $result['qrContent'],
+            'qr_content' => $result['qr_content'],
         ])->save();
 
         return $qrisPayment;
     }
 
-    private function pollGdcStatus(QrisPayment $qrisPayment): void
+    /**
+     * Beda dari pollGdcStatus() (lama, langsung ke GDC): hub sudah memverifikasi
+     * nominal sendiri sebelum menandai 'paid' (lihat BranchQrisPayment::
+     * receivedAmountMatches() di proyek hub), jadi di sini cukup percaya status
+     * yang dibalas hub, tidak perlu verifikasi nominal ulang.
+     */
+    private function pollHubStatus(QrisPayment $qrisPayment): void
     {
         try {
-            $result = $this->gdcPay->queryQr(
-                (string) $qrisPayment->gdc_reference_no,
-                $qrisPayment->reference_no,
-                $qrisPayment->external_id
-            );
+            $result = $this->hubQris->queryStatus($qrisPayment->reference_no);
         } catch (Throwable $exception) {
             report($exception);
             $qrisPayment->forceFill(['last_checked_at' => now()])->save();
@@ -183,28 +183,13 @@ class QrisPaymentController extends Controller
 
         $qrisPayment->last_checked_at = now();
 
-        $statusCode = (string) ($result['latestTransactionStatus'] ?? '');
-        $statusDesc = (string) ($result['transactionStatusDesc'] ?? '');
-
-        if (GdcPayService::isPaidStatus($statusCode, $statusDesc)) {
-            if (! $qrisPayment->receivedAmountMatches($result['amount'] ?? null)) {
-                Log::warning('gdcpay.qris_amount_mismatch', [
-                    'qris_payment_id' => $qrisPayment->id,
-                    'reference_no' => $qrisPayment->reference_no,
-                    'expected_amount' => $qrisPayment->amount,
-                    'received_amount' => $result['amount'] ?? null,
-                ]);
-                $qrisPayment->update(['status' => 'failed']);
-
-                return;
-            }
-
+        if (($result['status'] ?? '') === 'paid') {
             $qrisPayment->markAsPaid();
 
             return;
         }
 
-        if (GdcPayService::isFailedStatus($statusCode, $statusDesc)) {
+        if (in_array($result['status'] ?? '', ['failed', 'expired'], true)) {
             $qrisPayment->status = 'failed';
         }
 
