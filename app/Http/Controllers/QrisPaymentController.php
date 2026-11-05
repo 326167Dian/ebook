@@ -40,9 +40,10 @@ class QrisPaymentController extends Controller
         ]);
 
         if (! $qrisPayment) {
-            return back()->withInput()->withErrors([
-                'referral_code' => 'Pembayaran QRIS sedang tidak tersedia. Silakan gunakan upload bukti transfer manual.',
-            ]);
+            // QRIS Dinamis gagal -- jatuh otomatis ke QRIS Statis (lalu transfer bank kalau
+            // itu pun tidak dikonfigurasi), bukan menampilkan error ke customer. Lihat
+            // showRegister()/register.blade.php untuk cabang tampilan fallback-nya.
+            return back()->withInput()->with('qris_fallback', true);
         }
 
         return redirect()->route('member.qris.show', $qrisPayment->reference_no);
@@ -74,9 +75,7 @@ class QrisPaymentController extends Controller
         ]);
 
         if (! $qrisPayment) {
-            return back()->withErrors([
-                'referral_code' => 'Pembayaran QRIS sedang tidak tersedia. Silakan gunakan upload bukti transfer manual.',
-            ]);
+            return back()->withInput()->with('qris_fallback', true);
         }
 
         return redirect()->route('member.qris.show', $qrisPayment->reference_no);

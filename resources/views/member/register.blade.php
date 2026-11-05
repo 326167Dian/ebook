@@ -113,13 +113,12 @@
                 <div class="alert alert-danger mb-3">{{ $errors->first() }}</div>
             @endif
 
-            {{-- QRIS Otomatis (GDC Pay lewat hub mysifacenter.my.id) kembali aktif jadi tab default --
-                 Midtrans tetap disembunyikan (sudah digantikan GDC Pay). --}}
-            <div class="d-flex mb-3" style="gap: 8px;">
-                <button type="button" id="pay-tab-btn-qris" class="pay-tab-btn flex-fill active" onclick="switchPayTab('qris')">Bayar Otomatis QRIS</button>
-                <button type="button" id="pay-tab-btn-manual" class="pay-tab-btn flex-fill" onclick="switchPayTab('manual')">QRIS Statis</button>
-            </div>
-
+            {{-- Satu tampilan QRIS saja (tidak ada pilihan tab untuk customer): QRIS Dinamis
+                 (GDC Pay lewat hub) diutamakan; kalau gagal dibuat (lihat
+                 QrisPaymentController::createForRegistration()), otomatis jatuh ke form
+                 pendaftaran manual di bawah -- yang lanjut ke halaman /member/payment
+                 (QRIS Statis, lalu transfer bank kalau itu pun tidak dikonfigurasi). --}}
+            @if ($dynamicAvailable)
             <div id="pay-tab-qris">
                 <div class="price-note mb-3">
                     Bayar otomatis sebesar <span id="price-display-qris">Rp. {{ number_format($content->payment_price_original, 0, ',', '.') }}</span> via QRIS
@@ -157,58 +156,8 @@
                     <button type="submit" class="btn btn-ebook btn-block mt-3">Lanjut Bayar dengan QRIS</button>
                 </form>
             </div>
-
-            @if (false)
-            <div id="pay-tab-midtrans">
-                <div class="price-note mb-3">
-                    Bayar otomatis sebesar <span id="price-display-midtrans">Rp. {{ number_format($content->payment_price_original, 0, ',', '.') }}</span> via QRIS Midtrans
-                    (GoPay, OVO, DANA, ShopeePay, m-Banking, dll).<br>
-                    Akun langsung aktif otomatis begitu pembayaran terverifikasi, tanpa perlu upload bukti transfer.
-                </div>
-
-                <form method="POST" action="{{ route('member.register.midtrans.create') }}">
-                    @csrf
-                    <input type="hidden" name="_form" value="midtrans">
-
-                    <div class="form-group boxed">
-                        <div class="input-wrapper">
-                            <input type="text" class="form-control" name="name" placeholder="Nama"
-                                value="{{ old('name') }}" required>
-                        </div>
-                    </div>
-
-                    <div class="form-group boxed mt-2">
-                        <div class="input-wrapper">
-                            <input type="email" class="form-control" name="email" placeholder="Alamat email"
-                                value="{{ old('email') }}" required>
-                        </div>
-                    </div>
-
-                    <div class="form-group boxed mt-2">
-                        <div class="input-wrapper">
-                            <input type="text" autocapitalize="characters" maxlength="20" class="form-control" id="referral-midtrans" name="referral_code" placeholder="Kode Referral / Promo (opsional)" value="{{ old('referral_code', $referralCode ?? '') }}">
-                        </div>
-                        @if (! empty($referralCode) && ! old('referral_code'))
-                            <small class="text-success d-block mt-1">Kode referral otomatis terisi dari link yang Anda buka. Anda tetap bisa mengubahnya bila perlu.</small>
-                        @endif
-                    </div>
-
-                    <button type="submit" class="btn btn-ebook btn-block mt-3">Lanjut Bayar dengan Midtrans</button>
-                </form>
-            </div>
-            @endif
-
-            <div id="pay-tab-manual" style="display: none;">
-                @if (false)
-                {{-- Keterangan transfer bank disembunyikan, fokus ke QRIS statis saja (kode disimpan untuk diaktifkan lagi nanti). --}}
-                <div class="price-note mb-3">
-                    Upload bukti transfer sebesar <span id="price-display-manual">Rp. {{ number_format($content->payment_price_original, 0, ',', '.') }}</span>.<br>
-                    Ke No Rekening berikut ini<br>
-                    <strong>{{ $content->payment_bank_name }} {{ $content->payment_bank_account_number }} a/n {{ $content->payment_bank_account_holder }}</strong><br>
-                    Akun akan aktif setelah diverifikasi admin.
-                </div>
-                @endif
-
+            @else
+            <div id="pay-tab-manual">
                 <div class="price-note mb-3">
                     Harga E-Book: <strong id="price-display-manual">Rp. {{ number_format($content->payment_price_original, 0, ',', '.') }}</strong>
                     <ul class="benefit-list">
@@ -255,6 +204,7 @@
                     <button type="submit" class="btn btn-ebook btn-block mt-3">Lanjut ke Pembayaran</button>
                 </form>
             </div>
+            @endif
 
             <a href="{{ route('member.login') }}" class="btn btn-outline-primary btn-block mt-2">Saya sudah punya
                 akun</a>
@@ -267,20 +217,6 @@
     <script src="{{ asset('Mobilekit/HTML/assets/js/lib/bootstrap.min.js') }}"></script>
     <script src="{{ asset('Mobilekit/HTML/assets/js/base.js') }}"></script>
     <script>
-        function switchPayTab(tab) {
-            ['qris', 'manual'].forEach(function (name) {
-                var panel = document.getElementById('pay-tab-' + name);
-                var btn = document.getElementById('pay-tab-btn-' + name);
-
-                if (panel) {
-                    panel.style.display = tab === name ? '' : 'none';
-                }
-                if (btn) {
-                    btn.classList.toggle('active', tab === name);
-                }
-            });
-        }
-
         (function () {
             var originalPrice = {{ (int) $content->payment_price_original }};
             var finalPrice = {{ (int) $content->payment_price_final }};
@@ -381,13 +317,7 @@
             }
 
             wireReferralPrice('referral-qris', 'price-display-qris');
-            wireReferralPrice('referral-midtrans', 'price-display-midtrans');
             wireReferralPrice('referral-manual', 'price-display-manual');
-
-            var submittedForm = @json(old('_form'));
-            if (submittedForm === 'manual' || submittedForm === 'qris') {
-                switchPayTab(submittedForm);
-            }
         })();
     </script>
 </body>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\EbookContent;
 use App\Models\Member;
 use App\Models\Reseller;
+use App\Services\HubQrisService;
 use App\Services\MetaConversionsApi;
 use App\Rules\ValidReferralCode;
 use Illuminate\Http\Request;
@@ -132,6 +133,9 @@ class MemberAuthController extends Controller
             'referralCode' => $referralCode,
             'price' => $price,
             'waHelpLink' => Member::businessWhatsappLink($waMessage),
+            // QRIS Dinamis (hub) -> QRIS Statis -> transfer bank. Lihat catatan di
+            // QrisPaymentController::createForPayment() untuk cabang kedua.
+            'dynamicAvailable' => app(HubQrisService::class)->isConfigured() && ! $request->session()->pull('qris_fallback'),
         ]);
     }
 
@@ -193,6 +197,9 @@ class MemberAuthController extends Controller
             'waHelpLink' => Member::businessWhatsappLink(
                 "Halo, saya tertarik dengan E-Book Bisnis Apotek Itu Asik.\nBoleh saya bertanya dulu sebelum membeli?"
             ),
+            // QRIS Dinamis (hub) -> QRIS Statis -> transfer bank. Lihat catatan di
+            // QrisPaymentController::createForRegistration() untuk cabang kedua.
+            'dynamicAvailable' => app(HubQrisService::class)->isConfigured() && ! $request->session()->pull('qris_fallback'),
         ]);
     }
 
